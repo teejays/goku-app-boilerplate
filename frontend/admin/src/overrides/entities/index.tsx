@@ -1,13 +1,17 @@
 import { AppInfo, ServiceInfoCommon } from 'common'
 
-import { commonOverrides } from './Overrides'
-import { medicineInfoOverrides } from './Medicine'
-
 export interface OverrideProps {
     appInfo: AppInfo<ServiceInfoCommon>
 }
 
 export const applyEntityInfoOverrides = (props: OverrideProps) => {
-    commonOverrides(props)
-    medicineInfoOverrides(props)
+    // Sample override looks like:
+    /*
+    {
+        const entityInfo = appInfo.getEntityInfo<PharmaceuticalCompany>('pharmacy', 'pharmaceutical_company')
+        entityInfo.columnsFieldsForListView = ['name', 'updated_at', 'created_at']
+        entityInfo.getHumanNameFunc = (r, entityInfo) => r.name
+        appInfo.updateEntityInfo(entityInfo)
+    }
+    */
 }
