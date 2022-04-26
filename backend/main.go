@@ -12,10 +12,10 @@ import (
 	"github.com/teejays/clog"
 	gopi "github.com/teejays/gopi"
 
-	"github.com/teejays/goku-example-one/backend/gateway"
-	db_connection "github.com/teejays/goku-example-one/backend/goku.generated/db_connection"
-	http_handlers "github.com/teejays/goku-example-one/backend/goku.generated/http_handlers"
-	"github.com/teejays/goku-example-one/backend/services/users/auth"
+	"<goku_app_backend_go_module_name>/backend/gateway"
+	db_connection "<goku_app_backend_go_module_name>/backend/goku.generated/db_connection"
+	http_handlers "<goku_app_backend_go_module_name>/backend/goku.generated/http_handlers"
+	"<goku_app_backend_go_module_name>/backend/services/users/auth"
 )
 
 func main() {
