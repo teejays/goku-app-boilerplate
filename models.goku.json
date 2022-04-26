@@ -1,0 +1,558 @@
+{
+    "$schema": "https://teejays.github.io/goku/schema.json#",
+    "name": "ExampleApp",
+    "types": [
+        {
+            "name": "PersonName",
+            "fields": [
+                {
+                    "name": "First",
+                    "data_type": "String"
+                },
+                {
+                    "name": "MiddleInitial",
+                    "data_type": "String",
+                    "options": {
+                        "is_optional": true
+                    }
+                },
+                {
+                    "name": "Last",
+                    "data_type": "String"
+                }
+            ]
+        },
+        {
+            "name": "PhoneNumber",
+            "fields": [
+                {
+                    "name": "CountryCode",
+                    "data_type": "Number"
+                },
+                {
+                    "name": "Number",
+                    "data_type": "String"
+                },
+                {
+                    "name": "Extension",
+                    "data_type": "String",
+                    "options": {
+                        "is_optional": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Address",
+            "fields": [
+                {
+                    "name": "Line1",
+                    "data_type": "String"
+                },
+                {
+                    "name": "Line2",
+                    "data_type": "String",
+                    "options": {
+                        "is_optional": true
+                    }
+                },
+                {
+                    "name": "City",
+                    "data_type": "String"
+                },
+                {
+                    "name": "Province",
+                    "data_type": {
+                        "name": "PakistaniProvince",
+                        "kind": "Enum",
+                        "reference_namespace": {
+                            "app": "ExampleApp",
+                            "enum": "PakistaniProvince"
+                        }
+                    }
+                },
+                {
+                    "name": "PostalCode",
+                    "data_type": "String",
+                    "options": {
+                        "is_optional": true
+                    }
+                },
+                {
+                    "name": "Country",
+                    "data_type": {
+                        "name": "Country",
+                        "kind": "Enum",
+                        "reference_namespace": {
+                            "app": "ExampleApp",
+                            "enum": "Country"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Contact",
+            "fields": [
+                {
+                    "name": "Name",
+                    "data_type": {
+                        "name": "PersonName",
+                        "kind": "Nested",
+                        "reference_namespace": {
+                            "app": "ExampleApp",
+                            "types": [
+                                "PersonName"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Email",
+                    "data_type": "Email"
+                },
+                {
+                    "name": "Address",
+                    "data_type": {
+                        "name": "Address",
+                        "kind": "Nested",
+                        "reference_namespace": {
+                            "app": "ExampleApp",
+                            "types": [
+                                "Address"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "enums": [
+        {
+            "name": "Country",
+            "values": [
+                {
+                    "name": "Pakistan",
+                    "id": 1
+                },
+                {
+                    "name": "USA",
+                    "id": 2
+                }
+            ]
+        },
+        {
+            "name": "PakistaniProvince",
+            "values": [
+                {
+                    "name": "Punjab",
+                    "id": 1
+                },
+                {
+                    "name": "Sindh",
+                    "id": 2
+                },
+                {
+                    "name": "Khyber Pakhtoonkhwa",
+                    "id": 3
+                },
+                {
+                    "name": "Balochistan",
+                    "id": 4
+                },
+                {
+                    "name": "Gilgit-Baltistan",
+                    "id": 5
+                },
+                {
+                    "name": "Azad Kashmir",
+                    "id": 6
+                }
+            ]
+        }
+    ],
+    "services": [
+        {
+            "name": "Users",
+            "options": {
+                "frontend_options": {
+                    "default_icon": "TeamOutlined"
+                }
+            },
+            "entities": [
+                {
+                    "name": "User",
+                    "fields": [
+                        {
+                            "name": "Name",
+                            "data_type": {
+                                "name": "PersonName",
+                                "kind": "Nested",
+                                "reference_namespace": {
+                                    "app": "ExampleApp",
+                                    "types": [
+                                        "PersonName"
+                                    ]
+                                }
+                            },
+                            "options": {
+                                "nested_options": {
+                                    "expand_fields": false
+                                }
+                            }
+                        },
+                        {
+                            "name": "Email",
+                            "data_type": "Email",
+                            "options": {
+                                "default_database_value": "no@email.com",
+                                "nested_options": {
+                                    "expand_fields": false
+                                }
+                            }
+                        },
+                        {
+                            "name": "PhoneNumber",
+                            "data_type": {
+                                "name": "PhoneNumber",
+                                "kind": "Nested",
+                                "reference_namespace": {
+                                    "app": "ExampleApp",
+                                    "types": [
+                                        "PhoneNumber"
+                                    ]
+                                }
+                            },
+                            "options": {
+                                "is_optional": true,
+                                "nested_options": {}
+                            }
+                        },
+                        {
+                            "name": "PasswordHash",
+                            "data_type": "String",
+                            "options": {
+                                "exclude_from_gateway_input": true
+                            }
+                        }
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "AuthenticateRequest",
+                    "fields": [
+                        {
+                            "name": "Email",
+                            "data_type": "String"
+                        },
+                        {
+                            "name": "Password",
+                            "data_type": "String"
+                        }
+                    ],
+                    "options": {
+                        "kind": "WireRequest"
+                    }
+                },
+                {
+                    "name": "AuthenticateResponse",
+                    "fields": [
+                        {
+                            "name": "Token",
+                            "data_type": "String"
+                        }
+                    ],
+                    "options": {
+                        "kind": "WireResponse"
+                    }
+                },
+                {
+                    "name": "RegisterUserRequest",
+                    "fields": [
+                        {
+                            "name": "Email",
+                            "data_type": "Email"
+                        },
+                        {
+                            "name": "Name",
+                            "data_type": {
+                                "name": "PersonName",
+                                "kind": "Nested",
+                                "reference_namespace": {
+                                    "app": "ExampleApp",
+                                    "types": [
+                                        "PersonName"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "PhoneNumber",
+                            "data_type": {
+                                "name": "PhoneNumber",
+                                "kind": "Nested",
+                                "reference_namespace": {
+                                    "app": "ExampleApp",
+                                    "types": [
+                                        "PhoneNumber"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Password",
+                            "data_type": "String"
+                        }
+                    ],
+                    "options": {
+                        "kind": "WireRequest"
+                    }
+                }
+            ],
+            "methods": [
+                {
+                    "name": "AuthenticateUser",
+                    "description": "Handle authentication of users",
+                    "argument_type": {
+                        "app": "ExampleApp",
+                        "service": "Users",
+                        "types": [
+                            "AuthenticateRequest"
+                        ]
+                    },
+                    "return_type": {
+                        "app": "ExampleApp",
+                        "service": "Users",
+                        "types": [
+                            "AuthenticateResponse"
+                        ]
+                    },
+                    "options": {
+                        "type": "Query"
+                    }
+                },
+                {
+                    "name": "RegisterUser",
+                    "description": "Create a new user",
+                    "argument_type": {
+                        "app": "ExampleApp",
+                        "service": "Users",
+                        "types": [
+                            "RegisterUserRequest"
+                        ]
+                    },
+                    "return_type": {
+                        "app": "ExampleApp",
+                        "service": "Users",
+                        "types": [
+                            "AuthenticateResponse"
+                        ]
+                    },
+                    "options": {
+                        "type": "Mutation"
+                    }
+                }
+            ],
+            "apis": [
+                {
+                    "path": "users/register",
+                    "http_method": "POST",
+                    "use_body_for_request": true,
+                    "success_status": 200,
+                    "method_reference_namespace": {
+                        "app": "ExampleApp",
+                        "service": "Users",
+                        "method": "RegisterUser"
+                    },
+                    "is_public": true
+                },
+                {
+                    "path": "users/authenticate",
+                    "http_method": "POST",
+                    "use_body_for_request": true,
+                    "success_status": 200,
+                    "method_reference_namespace": {
+                        "app": "ExampleApp",
+                        "service": "Users",
+                        "method": "AuthenticateUser"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Pharmacy",
+            "options": {
+                "frontend_options": {
+                    "default_icon": "MedicineBoxOutlined"
+                }
+            },
+            "entities": [
+                {
+                    "name": "Drug",
+                    "fields": [
+                        {
+                            "name": "Name",
+                            "data_type": "String"
+                        }
+                    ]
+                },
+                {
+                    "name": "PharmaceuticalCompany",
+                    "fields": [
+                        {
+                            "name": "Name",
+                            "data_type": "String"
+                        }
+                    ]
+                },
+                {
+                    "name": "Medicine",
+                    "fields": [
+                        {
+                            "name": "Name",
+                            "data_type": "String"
+                        },
+                        {
+                            "name": "CompanyID",
+                            "data_type": "UUID",
+                            "options": {
+                                "is_foreign_key": true,
+                                "foreign_key_options": {
+                                    "service_name": "Pharmacy",
+                                    "entity_name": "PharmaceuticalCompany"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Primary Ingredient",
+                            "data_type": {
+                                "name": "Ingredient",
+                                "kind": "Nested",
+                                "reference_namespace": {
+                                    "app": "ExampleApp",
+                                    "service": "Pharmacy",
+                                    "entity": "Medicine",
+                                    "types": [
+                                        "Ingredient"
+                                    ]
+                                }
+                            },
+                            "options": {}
+                        },
+                        {
+                            "name": "Ingredients",
+                            "data_type": {
+                                "name": "Ingredient",
+                                "kind": "Nested",
+                                "reference_namespace": {
+                                    "app": "ExampleApp",
+                                    "service": "Pharmacy",
+                                    "entity": "Medicine",
+                                    "types": [
+                                        "Ingredient"
+                                    ]
+                                }
+                            },
+                            "is_repeated": true,
+                            "options": {}
+                        },
+                        {
+                            "name": "ModeOfDelivery",
+                            "data_type": {
+                                "name": "ModeOfDelivery",
+                                "kind": "Enum",
+                                "reference_namespace": {
+                                    "app": "ExampleApp",
+                                    "service": "Pharmacy",
+                                    "entity": "Medicine",
+                                    "enum": "ModeOfDelivery"
+                                }
+                            },
+                            "options": {}
+                        }
+                    ],
+                    "types": [
+                        {
+                            "name": "Ingredient",
+                            "fields": [
+                                {
+                                    "name": "DrugID",
+                                    "data_type": "UUID",
+                                    "options": {
+                                        "is_foreign_key": true,
+                                        "foreign_key_options": {
+                                            "service_name": "Pharmacy",
+                                            "entity_name": "Drug"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "IsPrimaryIngredient",
+                                    "data_type": "Bool"
+                                }
+                            ]
+                        }
+                    ],
+                    "enums": [
+                        {
+                            "name": "ModeOfDelivery",
+                            "values": [
+                                {
+                                    "name": "Tablet",
+                                    "id": 1
+                                },
+                                {
+                                    "name": "Syrup",
+                                    "id": 2,
+                                    "options": {
+                                        "display_value": "Liquid Syrup"
+                                    }
+                                },
+                                {
+                                    "name": "Capsule",
+                                    "id": 3
+                                },
+                                {
+                                    "name": "Injection",
+                                    "id": 4
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Product",
+                    "fields": [
+                        {
+                            "name": "MedicineID",
+                            "data_type": "UUID",
+                            "options": {
+                                "is_foreign_key": true,
+                                "foreign_key_options": {
+                                    "service_name": "Pharmacy",
+                                    "entity_name": "Medicine"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Mass",
+                            "data_type": "Number"
+                        },
+                        {
+                            "name": "Count",
+                            "data_type": "Number"
+                        },
+                        {
+                            "name": "Name",
+                            "data_type": "String",
+                            "options": {
+                                "is_optional": true
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
