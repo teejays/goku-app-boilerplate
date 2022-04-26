@@ -61,15 +61,8 @@
                     "data_type": "String"
                 },
                 {
-                    "name": "Province",
-                    "data_type": {
-                        "name": "PakistaniProvince",
-                        "kind": "Enum",
-                        "reference_namespace": {
-                            "app": "ExampleApp",
-                            "enum": "PakistaniProvince"
-                        }
-                    }
+                    "name": "State",
+                    "data_type": "String"
                 },
                 {
                     "name": "PostalCode",
