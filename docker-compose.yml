@@ -1,0 +1,86 @@
+services:
+  # Use this to build the app using the stable version of Goku
+  builder:
+    # environment:
+      # - SSH_AUTH_SOCK=/ssh-agent
+    build:
+      context: .
+      dockerfile: Dockerfile.builder
+      args:
+        - GIT_CLONE_GOKU=1
+        - GIT_CLONE_GOKU_UTIL=1
+      secrets:
+        - ssh_private_key
+    volumes:
+      - "./:/go-goku/app"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USERNAME=postgres
+      - PGPASSWORD=postgres
+      - DATABASE_HOST=database
+    networks:
+      - common-network
+
+  frontend:
+    image: node:latest
+    ports:
+      - 3000:3000
+    environment:
+      - REACT_APP_BACKEND_HOST=localhost
+      - REACT_APP_BACKEND_PORT=8080
+    networks:
+      - common-network
+    volumes:
+      - "./:/go-goku/app"
+    command: ["yarn", "--cwd", "/go-goku/app/frontend/admin", "start"]
+
+  # Commenting out backend service because let's have our builder service run it.
+  # backend:
+  #   image: golang:latest
+  #   depends_on:
+  #     - database
+  #   ports:
+  #     - 8080:8080 # Rest API
+  #     - 8081:8081 # Gateway (Graphql)
+  #   networks:
+  #     - common-network
+  #   volumes:
+  #     - "./:/go-goku/app"
+  #   environment:
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_USERNAME=postgres
+  #     - PGPASSWORD=postgres
+  #     - DATABASE_HOST=database
+  #     - GOKU_APP_PATH=/go-goku/app
+  #   working_dir: /go-goku/app
+  #   # command: ["ls"]
+  #   command: ["make", "run-backend"]
+
+  database:
+    image: postgres:alpine3.15
+    ports:
+      - 5432:5432
+    networks:
+      - common-network
+      - goku-network-database-dev
+    volumes:
+      - "../:/app"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USERNAME=postgres
+      - PGPASSWORD=postgres
+    command: ["postgres"]
+
+networks:
+  common-network:
+  goku-network-database-dev:
+      name: goku-network-database-dev
+
+secrets:
+  ssh_private_key:
+    file: ~/.ssh/id_ed25519
+
+
+    
+
+
