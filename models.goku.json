@@ -1,6 +1,9 @@
 {
     "$schema": "https://teejays.github.io/goku/schema.json#",
-    "name": "ExampleApp",
+    "name": "<goku_app_name>",
+    "config": {
+        "go_module_name": "<goku_app_backend_go_module_name>"
+    },
     "types": [
         {
             "name": "PersonName",
