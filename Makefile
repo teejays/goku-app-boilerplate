@@ -38,7 +38,7 @@ docker-up-builder:
 docker-up-services:
 	docker compose up --build -d --remove-orphans database frontend
 
-docker-up: docker-up-builder docker-up-service
+docker-up: docker-up-builder docker-up-services
 
 docker-stop:
 	docker compose stop
@@ -67,6 +67,12 @@ goku-generate: check-env-GOKU_BIN_DIR clean
 		--graphql-schema=true \
 		--graphql-resolver=true \
 
+# Migration
+
+docker-migrate-db:
+	docker compose exec builder make migrate-db
+
+migrate-db: create-dbs generate-db-migration migrate-db remove-empty-migration-files
 
 # Backend
 
@@ -103,16 +109,12 @@ run-frontend-admin: build-frontend-admin
 
 # Database 
 
-docker-migrate-db:
-	docker compose exec builder make db-migrate
-
 docker-logs-database:
 	docker compose logs database
 
 docker-connect-database:
 	docker compose exec make connect-db
 
-migrate-db: create-dbs generate-db-migration migrate-db remove-empty-migration-files
 
 connect-db:
 	psql -h ${DATABASE_HOST} -p 5432 --username=${POSTGRES_USERNAME} --db=postgres
