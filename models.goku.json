@@ -80,7 +80,7 @@
                         "name": "Country",
                         "kind": "Enum",
                         "reference_namespace": {
-                            "app": "ExampleApp",
+                            "app": "<goku_app_name>",
                             "enum": "Country"
                         }
                     }
@@ -96,7 +96,7 @@
                         "name": "PersonName",
                         "kind": "Nested",
                         "reference_namespace": {
-                            "app": "ExampleApp",
+                            "app": "<goku_app_name>",
                             "types": [
                                 "PersonName"
                             ]
@@ -113,7 +113,7 @@
                         "name": "Address",
                         "kind": "Nested",
                         "reference_namespace": {
-                            "app": "ExampleApp",
+                            "app": "<goku_app_name>",
                             "types": [
                                 "Address"
                             ]
@@ -156,7 +156,7 @@
                                 "name": "PersonName",
                                 "kind": "Nested",
                                 "reference_namespace": {
-                                    "app": "ExampleApp",
+                                    "app": "<goku_app_name>",
                                     "types": [
                                         "PersonName"
                                     ]
@@ -184,7 +184,7 @@
                                 "name": "PhoneNumber",
                                 "kind": "Nested",
                                 "reference_namespace": {
-                                    "app": "ExampleApp",
+                                    "app": "<goku_app_name>",
                                     "types": [
                                         "PhoneNumber"
                                     ]
@@ -247,7 +247,7 @@
                                 "name": "PersonName",
                                 "kind": "Nested",
                                 "reference_namespace": {
-                                    "app": "ExampleApp",
+                                    "app": "<goku_app_name>",
                                     "types": [
                                         "PersonName"
                                     ]
@@ -260,7 +260,7 @@
                                 "name": "PhoneNumber",
                                 "kind": "Nested",
                                 "reference_namespace": {
-                                    "app": "ExampleApp",
+                                    "app": "<goku_app_name>",
                                     "types": [
                                         "PhoneNumber"
                                     ]
@@ -282,14 +282,14 @@
                     "name": "AuthenticateUser",
                     "description": "Handle authentication of users",
                     "argument_type": {
-                        "app": "ExampleApp",
+                        "app": "<goku_app_name>",
                         "service": "Users",
                         "types": [
                             "AuthenticateRequest"
                         ]
                     },
                     "return_type": {
-                        "app": "ExampleApp",
+                        "app": "<goku_app_name>",
                         "service": "Users",
                         "types": [
                             "AuthenticateResponse"
@@ -303,14 +303,14 @@
                     "name": "RegisterUser",
                     "description": "Create a new user",
                     "argument_type": {
-                        "app": "ExampleApp",
+                        "app": "<goku_app_name>",
                         "service": "Users",
                         "types": [
                             "RegisterUserRequest"
                         ]
                     },
                     "return_type": {
-                        "app": "ExampleApp",
+                        "app": "<goku_app_name>",
                         "service": "Users",
                         "types": [
                             "AuthenticateResponse"
@@ -328,7 +328,7 @@
                     "use_body_for_request": true,
                     "success_status": 200,
                     "method_reference_namespace": {
-                        "app": "ExampleApp",
+                        "app": "<goku_app_name>",
                         "service": "Users",
                         "method": "RegisterUser"
                     },
@@ -340,7 +340,7 @@
                     "use_body_for_request": true,
                     "success_status": 200,
                     "method_reference_namespace": {
-                        "app": "ExampleApp",
+                        "app": "<goku_app_name>",
                         "service": "Users",
                         "method": "AuthenticateUser"
                     }
