@@ -72,7 +72,7 @@ func mainErr() error {
 
 	gokuAppPath := os.Getenv("GOKU_APP_PATH")
 	if gokuAppPath == "" {
-		return fmt.Errorf("Env variabel GOKU_APP_PATH not set")
+		return fmt.Errorf("Env variable GOKU_APP_PATH not set")
 	}
 
 	wg.Add(1)

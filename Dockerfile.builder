@@ -21,6 +21,7 @@ RUN apt-get update && \
 RUN pip3 install psycopg2-binary
 RUN pip3 install yamlfmt
 
+RUN npm install --global yarn
 RUN npm install --global prettier
 
 # Access Goku: Need to install Goku binary (Why is it needed?) There are two ways of doing this:
