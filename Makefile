@@ -11,7 +11,10 @@ WHITE=\033[37;1m
 
 # Commands
 GO=go
-GOKU=goku
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
+
+GOKU_BINARY_NAME=goku.$(GOOS)_$(GOARCH)
 
 # Paths
 CURRENT_DIR=$(shell pwd)
@@ -36,22 +39,30 @@ docker-start: docker-up docker-goku-generate docker-migrate-db docker-run-backen
 docker-up-builder:
 	docker compose up --build -d --remove-orphans builder
 
-docker-up-services:
-	docker compose up --build -d --remove-orphans database frontend
+docker-up-database:
+	docker compose up --build -d --remove-orphans database
 
-docker-up: docker-up-builder docker-up-services
+docker-up-frontend:
+	docker compose up --build -d --remove-orphans frontend
+
+docker-up: docker-up-builder docker-up-database docker-up-frontend
 
 docker-stop:
 	docker compose stop
 
+docker-connect-builder:
+	docker compose exec -it builder /bin/bash
+
+
 # Goku Generation
 
-docker-goku-generate:
+docker-goku-generate: docker-up-builder
 	docker compose exec builder make -C /go-goku/app goku-generate
+
 
 goku-generate: check-env-GOKU_BIN_DIR clean
 	@echo "$(YELLOW)Running Goku...$(RESET)"
-		${GOKU_BIN_DIR}/goku generate \
+		${GOKU_BIN_DIR}/$(GOKU_BINARY_NAME) generate \
 		--app-root-dir="$(PATH_TO_APP)" \
 		--sql-yaml-schema=true \
 		--golang-type-definitions=true \
@@ -68,20 +79,23 @@ goku-generate: check-env-GOKU_BIN_DIR clean
 
 # Migration
 
-docker-migrate-db:
+docker-migrate-db: docker-up-builder docker-up-database
 	docker compose exec builder make migrate-db
+
 
 migrate-db: create-dbs generate-db-migration migrate-db remove-empty-migration-files
 
 # Backend
 
-docker-build-backend:
+docker-build-backend: docker-up-builder
 	docker compose exec builder make build-backend
 
-docker-run-backend:
+docker-run-backend: docker-up-builder docker-up-database
 	docker compose exec builder make run-backend
 
+
 build-backend: check-env-GOKU_BIN_DIR
+	$(GO) mod tidy && \
 	$(GO) build -o ${GOKU_BIN_DIR}/goku-app $(PATH_TO_APP)/backend/main.go
 
 run-backend: check-env-GOKU_BIN_DIR build-backend
@@ -91,14 +105,15 @@ run-backend: check-env-GOKU_BIN_DIR build-backend
 # Frontend
 PATH_TO_FRONTEND_ADMIN=$(PATH_TO_APP)/frontend/admin
 
-docker-build-frontend-admin:
+docker-build-frontend-admin: docker-up-builder
 	docker compose exec builder make build-frontend-admin
 
-docker-run-frontend-admin:
+docker-run-frontend-admin: docker-up-builder docker-up-database
 	docker compose up --build frontend
 
 docker-logs-frontend-admin:
 	docker compose logs frontend
+
 
 build-frontend-admin:
 	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN)
