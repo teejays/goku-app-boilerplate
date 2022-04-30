@@ -18,7 +18,6 @@ CURRENT_DIR=$(shell pwd)
 
 PATH_TO_APP=.
 APP_NAME=$(shell basename "${PWD}")
-PATH_TO_MODELS=$(PATH_TO_APP)/models/example.json
 PATH_TO_GEN=../goku/generator
 DB_USER=${USER}
 
@@ -29,6 +28,8 @@ check-env-GOKU_BIN_DIR:
 ifndef GOKU_BIN_DIR
 	$(error GOKU_BIN_DIR is undefined)
 endif
+
+docker-start: docker-up docker-goku-generate docker-migrate-db docker-run-backend
 
 # Docker Setup
 
@@ -51,9 +52,7 @@ docker-goku-generate:
 goku-generate: check-env-GOKU_BIN_DIR clean
 	@echo "$(YELLOW)Running Goku...$(RESET)"
 		${GOKU_BIN_DIR}/goku generate \
-		--models-json-file="$(PATH_TO_MODELS)" \
 		--app-root-dir="$(PATH_TO_APP)" \
-		--app-go-module-name="github.com/teejays/goku-example-one" \
 		--sql-yaml-schema=true \
 		--golang-type-definitions=true \
 		--golang-meta-info=true \
@@ -102,10 +101,10 @@ docker-logs-frontend-admin:
 	docker compose logs frontend
 
 build-frontend-admin:
-	yarn --cwd=$(PATH_TO_FRONTEND_ADMIN)
+	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN)
 
 run-frontend-admin: build-frontend-admin
-	yarn --cwd=$(PATH_TO_FRONTEND_ADMIN) start
+	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN) start
 
 # Database 
 
@@ -178,7 +177,7 @@ sync-test-dbs: create-test-dbs
 # - Generic: Remove all generated & git ignored files.
 clean: clean-db-migration
 	@echo "$(YELLOW)Removing all goku.generated files...$(RESET)"
-	find . -type d -name goku.generated -prune -exec rm -rf {}
+	find . -type d -name goku.generated -prune -exec rm -rf {} \;
 
 
 # Database Setup/Reference Commands: Not needed often
