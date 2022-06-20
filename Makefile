@@ -19,22 +19,19 @@ GOKU_BINARY_NAME=goku.$(GOOS)_$(GOARCH)
 # Paths
 CURRENT_DIR=$(shell pwd)
 
-PATH_TO_APP=.
 APP_NAME=$(shell basename "${PWD}")
 PATH_TO_GEN=../goku/generator
 DB_USER=${USER}
 
 # Group commands: do more than one thing at once
-all: clean goku-generate 
+all: docker-all
 
-check-env-GOKU_BIN_DIR:
-ifndef GOKU_BIN_DIR
-	$(error GOKU_BIN_DIR is undefined)
-endif
-
-docker-start: docker-up docker-goku-generate docker-migrate-db docker-run-backend
+docker-all: docker-up docker-goku-generate docker-run-database docker-migrate-db docker-run-backend docker-run-frontend
 
 # Docker Setup
+
+docker-up: docker-up-builder docker-up-database docker-up-frontend
+
 
 docker-up-builder:
 	docker compose up --build -d --remove-orphans builder
@@ -45,7 +42,6 @@ docker-up-database:
 docker-up-frontend:
 	docker compose up --build -d --remove-orphans frontend
 
-docker-up: docker-up-builder docker-up-database docker-up-frontend
 
 docker-stop:
 	docker compose stop
@@ -62,20 +58,7 @@ docker-goku-generate: docker-up-builder
 
 goku-generate: check-env-GOKU_BIN_DIR clean
 	@echo "$(YELLOW)Running Goku...$(RESET)"
-		${GOKU_BIN_DIR}/$(GOKU_BINARY_NAME) generate \
-		--app-root-dir="$(PATH_TO_APP)" \
-		--sql-yaml-schema=true \
-		--golang-type-definitions=true \
-		--golang-meta-info=true \
- 		--golang-dal=true \
-		--golang-type-filters=true \
-		--golang-generics=true \
-		--golang-methods=true \
-		--golang-http-handlers=true \
-		--golang-db-connection=true \
-		--type-script-types=true \
-		--graphql-schema=true \
-		--graphql-resolver=true \
+		${GOKU_BIN_DIR}/$(GOKU_BINARY_NAME) generate
 
 # Migration
 
@@ -112,7 +95,7 @@ docker-run-frontend-admin: docker-up-builder docker-up-database
 	docker compose up --build frontend
 
 docker-logs-frontend-admin:
-	docker compose logs frontend
+	docker compose logs -f frontend
 
 
 build-frontend-admin:
@@ -123,8 +106,10 @@ run-frontend-admin: build-frontend-admin
 
 # Database 
 
+docker-run-database: docker-up-database
+
 docker-logs-database:
-	docker compose logs database
+	docker compose logs -f database
 
 docker-connect-database:
 	docker compose exec make connect-db
@@ -194,6 +179,10 @@ clean: clean-db-migration
 	@echo "$(YELLOW)Removing all goku.generated files...$(RESET)"
 	find . -type d -name goku.generated -prune -exec rm -rf {} \;
 
+check-env-GOKU_BIN_DIR:
+ifndef GOKU_BIN_DIR
+	$(error GOKU_BIN_DIR is undefined)
+endif
 
 # Database Setup/Reference Commands: Not needed often
 
