@@ -13,9 +13,6 @@ services:
         - ssh_private_key
     volumes:
       - "./:/go-goku/app"
-    ports:
-      - 8080:8080 # Rest API
-      - 8081:8081 # Graphql
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USERNAME=postgres
@@ -25,44 +22,11 @@ services:
     networks:
       - common-network
 
-  frontend:
-    image: node:latest
-    ports:
-      - 3000:3000
-    environment:
-      - REACT_APP_BACKEND_HOST=localhost
-      - REACT_APP_BACKEND_PORT=8080
-      - HOST=0.0.0.0 # Post for the frontend to run
-    networks:
-      - common-network
-    volumes:
-      - "./:/go-goku/app"
-    command: ["yarn", "--cwd", "/go-goku/app/frontend/admin", "start"]
-
-  # Commenting out backend service because let's have our builder service run it.
-  # backend:
-  #   image: golang:latest
-  #   depends_on:
-  #     - database
-  #   ports:
-  #     - 8080:8080 # Rest API
-  #     - 8081:8081 # Gateway (Graphql)
-  #   networks:
-  #     - common-network
-  #   volumes:
-  #     - "./:/go-goku/app"
-  #   environment:
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_USERNAME=postgres
-  #     - PGPASSWORD=postgres
-  #     - DATABASE_HOST=database
-  #     - GOKU_APP_PATH=/go-goku/app
-  #   working_dir: /go-goku/app
-  #   # command: ["ls"]
-  #   command: ["make", "run-backend"]
-
+  # Runs the database
   database:
     image: postgres:alpine3.15
+    depends_on:
+      - builder
     ports:
       - 5432:5432
     networks:
@@ -76,6 +40,46 @@ services:
       - POSTGRES_USERNAME=postgres
       - PGPASSWORD=postgres
     command: ["postgres"]
+  
+  # Runs the backend
+  backend:
+    image: golang:1.18.3
+    depends_on:
+      - builder
+      - database
+    ports:
+      - 8080:8080 # Rest API
+      - 8081:8081 # Gateway (Graphql)
+    networks:
+      - common-network
+    volumes:
+      - "./:/go-goku/app"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USERNAME=postgres
+      - PGPASSWORD=postgres
+      - DATABASE_HOST=database
+      - GOKU_BIN_DIR=/go-goku/bin
+    working_dir: /go-goku/app
+    command: ["make", "run-backend"]
+
+  # Runs the frontend app
+  frontend:
+    image: node:latest
+    depends_on:
+      - builder
+      - backend
+    ports:
+      - 3000:3000
+    environment:
+      - REACT_APP_BACKEND_HOST=localhost
+      - REACT_APP_BACKEND_PORT=8080
+      - HOST=0.0.0.0 # Post for the frontend to run
+    networks:
+      - common-network
+    volumes:
+      - "./:/go-goku/app"
+    command: ["yarn", "--cwd", "/go-goku/app/frontend/admin", "start"]
 
 networks:
   common-network:
@@ -85,8 +89,3 @@ networks:
 secrets:
   ssh_private_key:
     file: ~/.ssh/id_ed25519
-
-
-    
-
-
