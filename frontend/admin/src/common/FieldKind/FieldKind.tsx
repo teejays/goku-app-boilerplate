@@ -95,7 +95,7 @@ const DefaultFieldKind = {
         console.log('default.getInputComponent(): getting single InputComponent for ', this.name)
         return (props: FieldFormProps) => {
             const { fieldInfo: fieldInfo, ...forwardProps } = props
-            return <Input {...forwardProps} />
+            return <DefaultInput {...forwardProps} />
         }
     },
     getInputRepeatedComponent() {
@@ -296,10 +296,10 @@ export const NestedKind: FieldKind = {
             const nestedTypeInfo = store.getTypeInfoByNamespace(fieldInfo.referenceNamespace)
 
             if (nestedTypeInfo.name === 'person_name') {
-                return <PersonNameDisplay value={(value as unknown) as PersonName} />
+                return <PersonNameDisplay value={value as unknown as PersonName} />
             }
             if (nestedTypeInfo.name === 'phone_number') {
-                return <PhoneNumberDisplay value={(value as unknown) as PhoneNumber} />
+                return <PhoneNumberDisplay value={value as unknown as PhoneNumber} />
             }
 
             return <TypeDisplay typeInfo={nestedTypeInfo} objectValue={value} />

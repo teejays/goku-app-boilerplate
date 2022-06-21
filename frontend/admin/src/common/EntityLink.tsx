@@ -26,7 +26,7 @@ export const EntityListLink = (props: { entityInfo: EntityInfoCommon; text?: str
 
 interface EntityAddLinkProps<E extends EntityMinimal> {
     entityInfo: EntityInfoCommonV2<E>
-    children: React.ReactNode
+    children: React.ReactElement
 }
 
 export const EntityAddLink = <E extends EntityMinimal>(props: EntityAddLinkProps<E>) => {

@@ -19,6 +19,7 @@ GOKU_BINARY_NAME=goku.$(GOOS)_$(GOARCH)
 # Paths
 CURRENT_DIR=$(shell pwd)
 
+PATH_TO_APP=.
 APP_NAME=$(shell basename "${PWD}")
 PATH_TO_GEN=../goku/generator
 DB_USER=${USER}
@@ -55,7 +56,6 @@ docker-connect-builder:
 docker-goku-generate: docker-up-builder
 	docker compose exec builder make -C /go-goku/app goku-generate
 
-
 goku-generate: check-env-GOKU_BIN_DIR clean
 	@echo "$(YELLOW)Running Goku...$(RESET)"
 		${GOKU_BIN_DIR}/$(GOKU_BINARY_NAME) generate
@@ -66,7 +66,7 @@ docker-migrate-db: docker-up-builder docker-up-database
 	docker compose exec builder make migrate-db
 
 
-migrate-db: create-dbs generate-db-migration migrate-db remove-empty-migration-files
+migrate-db: create-dbs generate-db-migration remove-empty-migration-files run-db-migration
 
 # Backend
 
@@ -81,7 +81,7 @@ build-backend: check-env-GOKU_BIN_DIR
 	$(GO) mod tidy && \
 	$(GO) build -o ${GOKU_BIN_DIR}/goku-app $(PATH_TO_APP)/backend/main.go
 
-run-backend: check-env-GOKU_BIN_DIR build-backend
+run-backend: check-env-GOKU_BIN_DIR build-backend migrate-db
 	GOKU_APP_PATH=$(PATH_TO_APP) \
 	${GOKU_BIN_DIR}/goku-app
 
@@ -90,6 +90,9 @@ PATH_TO_FRONTEND_ADMIN=$(PATH_TO_APP)/frontend/admin
 
 docker-build-frontend-admin: docker-up-builder
 	docker compose exec builder make build-frontend-admin
+
+docker-install-frontend-admin: 
+	docker compose exec frontend make install-frontend-admin
 
 docker-run-frontend-admin: docker-up-builder docker-up-database
 	docker compose up --build frontend
@@ -100,6 +103,9 @@ docker-logs-frontend-admin:
 
 build-frontend-admin:
 	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN)
+
+install-frontend-admin:
+	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN) install
 
 run-frontend-admin: build-frontend-admin
 	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN) start
@@ -112,7 +118,7 @@ docker-logs-database:
 	docker compose logs -f database
 
 docker-connect-database:
-	docker compose exec make connect-db
+	docker compose exec builder make connect-db
 
 
 connect-db:

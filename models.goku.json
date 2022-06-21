@@ -343,7 +343,8 @@
                         "app": "<goku_app_name>",
                         "service": "Users",
                         "method": "AuthenticateUser"
-                    }
+                    },
+                    "is_public": true
                 }
             ]
         }

@@ -1,6 +1,7 @@
 import { AppInfoContext, EntityMinimal, TypeInfo, TypeMinimal } from 'common'
-import { Button, Card, DatePicker, DatePickerProps, Form, FormItemProps, Input, InputNumber, InputNumberProps, InputProps, Select, Spin, Switch, SwitchProps, TimePickerProps } from 'antd'
+import { Button, Card, DatePicker, Form, FormItemProps, Input, InputNumber, InputNumberProps, InputProps, Select, Spin, Switch, SwitchProps, TimePicker, TimePickerProps } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
+import { PickerDateProps, PickerTimeProps } from 'antd/lib/date-picker/generatePicker'
 import React, { useContext, useState } from 'react'
 
 import { FieldFormProps } from './FieldKind'
@@ -69,14 +70,16 @@ export const TypeFormItems = <T extends TypeMinimal>(props: TypeFormItemsProps<T
     return <>{formItems}</>
 }
 
+interface OurTimePickerProps {}
+
 export interface FormInputProps {
     formItemProps?: Partial<FormItemProps>
     sharedInputProps?: LocalSharedInputProps
     stringInputProps?: Partial<InputProps>
     numberInputProps?: Partial<InputNumberProps>
     switchProps?: Partial<SwitchProps>
-    datePickerProps?: DatePickerProps
-    timePickerProps?: TimePickerProps
+    datePickerProps?: PickerDateProps<any>
+    timePickerProps?: Omit<PickerTimeProps<any>, 'picker'> & React.RefAttributes<any>
 }
 
 export interface LocalSharedInputProps {
@@ -119,7 +122,7 @@ export const BooleanInput = (props: FormInputProps) => {
 export const DateInput = (props: FormInputProps) => {
     return (
         <Form.Item {...props.formItemProps}>
-            <DatePicker {...props.sharedInputProps} {...props.datePickerProps} />
+            <DatePicker {...props.datePickerProps} />
         </Form.Item>
     )
 }
@@ -127,7 +130,7 @@ export const DateInput = (props: FormInputProps) => {
 export const TimestampInput = (props: FormInputProps) => {
     return (
         <Form.Item {...props.formItemProps}>
-            <DatePicker showTime={true} {...props.sharedInputProps} {...props.timePickerProps} />
+            <DatePicker showTime={true} {...props.sharedInputProps} {...props.datePickerProps} {...props.timePickerProps} />
         </Form.Item>
     )
 }
