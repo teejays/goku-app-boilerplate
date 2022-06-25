@@ -26,6 +26,7 @@ DB_USER=${USER}
 
 # Group commands: do more than one thing at once
 all: docker-all
+stop: docker-stop
 
 docker-all: docker-up-builder docker-up-database docker-goku-generate docker-migrate-db docker-up-backend docker-build-frontend-admin docker-up-frontend docker-logs
 
