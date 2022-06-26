@@ -1,0 +1,8 @@
+
+FROM node:18-alpine3.15
+
+# TODO: Update System
+
+# Use yarn v2
+RUN corepack enable
+RUN yarn set version berry

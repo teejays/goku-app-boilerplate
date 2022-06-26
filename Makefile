@@ -27,8 +27,9 @@ DB_USER=${USER}
 # Group commands: do more than one thing at once
 all: docker-all
 stop: docker-stop
+destroy: docker-destroy
 
-docker-all: docker-up-builder docker-up-database docker-goku-generate docker-migrate-db docker-up-backend docker-build-frontend-admin docker-up-frontend docker-logs
+docker-all: docker-up-builder docker-up-database docker-goku-generate docker-migrate-db docker-up-backend docker-up-frontend docker-logs
 
 # Docker Setup
 
@@ -49,6 +50,9 @@ docker-logs:
 
 docker-stop:
 	docker compose stop
+
+docker-destroy: docker-stop
+	docker compose rm --force --stop --volumes
 
 docker-connect-builder:
 	docker compose exec -it builder /bin/bash
@@ -88,46 +92,52 @@ connect-db:
 
 # Backend
 
+CMD_BACKEND_BUILD=$(GO) mod tidy && $(GO) build -o ${GOKU_BIN_DIR}/goku-app $(PATH_TO_APP)/backend/main.go
+CMD_BACKEND_RUN=GOKU_APP_PATH=$(PATH_TO_APP) ${GOKU_BIN_DIR}/goku-app
+
 docker-build-backend: docker-up-builder
-	docker compose exec builder make build-backend
+	docker compose exec backend ${CMD_BACKEND_BUILD}
 
 docker-run-backend:  docker-up-database docker-up-backend
 
 docker-logs-backend:
 	docker compose logs -f backend
 
+docker-connect-backend:
+	docker compose exec -it backend /bin/bash
+
 
 build-backend: check-env-GOKU_BIN_DIR
-	$(GO) mod tidy && \
-	$(GO) build -o ${GOKU_BIN_DIR}/goku-app $(PATH_TO_APP)/backend/main.go
+	${CMD_BACKEND_BUILD}
 
 run-backend: check-env-GOKU_BIN_DIR build-backend
-	GOKU_APP_PATH=$(PATH_TO_APP) \
-	${GOKU_BIN_DIR}/goku-app
+	${CMD_BACKEND_RUN}
 
 # Frontend
-PATH_TO_FRONTEND_ADMIN=$(PATH_TO_APP)/frontend/admin
+CMD_FRONTEND_ADMIN_INSTALL=yarn workspace admin install
+CMD_FRONTEND_ADMIN_RUN=yarn workspace admin start
 
-docker-build-frontend-admin: docker-up-builder
-	docker compose exec builder make build-frontend-admin
+docker-install-frontend-admin: docker-up-frontend
+	docker compose exec -it frontend ${CMD_FRONTEND_ADMIN_INSTALL}
 
-docker-install-frontend-admin: docker-up-builder
-	docker compose exec builder make install-frontend-admin
+docker-run-frontend-admin:
+	docker compose exec -it frontend ${CMD_FRONTEND_ADMIN_RUN}
 
-docker-run-frontend-admin: docker-up-frontend
+docker-run-frontend-admin-bg:
+	docker compose exec -it -d frontend ${CMD_FRONTEND_ADMIN_RUN}
 
 docker-logs-frontend-admin:
 	docker compose logs -f frontend
 
+docker-connect-frontend-admin:
+	docker compose exec -it frontend /bin/bash
 
-build-frontend-admin:
-	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN)
 
 install-frontend-admin:
-	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN) install
+	${CMD_FRONTEND_ADMIN_INSTALL}
 
 run-frontend-admin: build-frontend-admin
-	yarn --ignore-engines --cwd=$(PATH_TO_FRONTEND_ADMIN) start
+	${CMD_FRONTEND_ADMIN_RUN}
 
 
 # -- Database: Create Databases (so we can create migrations)

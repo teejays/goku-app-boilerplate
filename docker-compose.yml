@@ -65,7 +65,9 @@ services:
 
   # Runs the frontend app
   frontend:
-    image: node:latest
+    build:
+      context: frontend
+      dockerfile: Dockerfile.frontend
     depends_on:
       - builder
       - backend
@@ -79,7 +81,9 @@ services:
       - common-network
     volumes:
       - "./:/go-goku/app"
-    command: ["yarn", "--cwd", "/go-goku/app/frontend/admin", "start"]
+    working_dir: /go-goku/app
+    command: ["yarn", "workspace", "admin", "start"]
+    # entrypoint: ["tail", "-f", "/dev/null"]
 
 networks:
   common-network:

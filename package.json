@@ -1,0 +1,7 @@
+{
+    "private": true,
+    "workspaces": [
+        "frontend/admin"
+    ],
+    "packageManager": "yarn@3.2.1"
+}
