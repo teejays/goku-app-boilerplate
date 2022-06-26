@@ -82,8 +82,7 @@ services:
     volumes:
       - "./:/go-goku/app"
     working_dir: /go-goku/app
-    command: ["yarn", "workspace", "admin", "start"]
-    # entrypoint: ["tail", "-f", "/dev/null"]
+    command: [sh, -c, "yarn workspace admin install && yarn workspace admin start"]
 
 networks:
   common-network:
