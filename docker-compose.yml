@@ -1,6 +1,7 @@
 services:
   # Use this to build the app using the stable version of Goku
   builder:
+    container_name: goku_builder
     image: iamteejay/goku:app_builder_latest
     volumes:
       - "./:${CONTAINER_APP_ROOT_DIR}"
@@ -18,6 +19,7 @@ services:
 
   # Runs the database
   database:
+    container_name: goku_database
     image: postgres:alpine3.15
     depends_on:
       - builder
@@ -25,8 +27,6 @@ services:
       - 5432:5432
     networks:
       - common-network
-    # volumes:
-    #   - "./:${CONTAINER_APP_ROOT_DIR}"
     working_dir: /go-goku
     environment:
       - POSTGRES_PASSWORD=postgres
@@ -36,6 +36,7 @@ services:
   
   # Runs the backend
   backend:
+    container_name: goku_backend
     image: golang:1.18.3
     depends_on:
       - builder
@@ -57,11 +58,12 @@ services:
       - PGPASSWORD=postgres
       - DATABASE_HOST=database
     working_dir: /go-goku
-    command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR}", "-f", "container.Makefile", "backend-dev"] # Development
-    # command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR}", "-f", "container.Makefile", "backend"] # Production
+    command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR}", "-f", "container.Makefile", "backend-dev"] # For Goku development
+    # command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR}", "-f", "container.Makefile", "backend"] # For pure app development
 
   # Runs the frontend app
   frontend:
+    container_name: goku_frontend
     # image: iamteejay/goku:app_frontend_latest
     build:
       context: frontend
