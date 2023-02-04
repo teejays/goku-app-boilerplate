@@ -23,15 +23,14 @@ import {
     getInputComponentWithRepetition,
 } from 'common/Form'
 import { Card, Form, Input, Select, Spin } from 'antd'
+import { EntityInfo, FieldInfo, UUID } from 'common'
 import { PersonName, PhoneNumber } from 'goku.generated/types/types.generated'
 import React, { useContext } from 'react'
 
 import { AppInfoContext } from 'common/AppInfoContext'
 import { EntityLinkFromID } from 'common/EntityLink'
-import { FieldInfo } from 'common'
 import { TypeMinimal } from 'common/TypeInfo'
 import { capitalCase } from 'change-case'
-import cloneDeep from 'lodash.clonedeep'
 
 // getFieldValue takes an Entity and FieldInfo, and returns the value for the Field
 export const getValueForField = <T extends TypeMinimal, FT>(props: { obj: T; fieldInfo: FieldInfo }): FT => {
@@ -56,7 +55,7 @@ export interface FieldKind {
 
     getLabel: (props: FieldInfo) => JSX.Element
     getLabelString: (props: FieldInfo) => string
-    getDisplayComponent: (fieldInfo: FieldInfo) => React.ComponentType<DisplayProps>
+    getDisplayComponent: (fieldInfo: FieldInfo, entityInfo?: EntityInfo) => React.ComponentType<DisplayProps>
     getDisplayRepeatedComponent: (fieldInfo: FieldInfo) => React.ComponentType<DisplayProps>
     getInputComponent: () => React.ComponentType<FieldFormProps>
     getInputRepeatedComponent: () => React.ComponentType<FieldFormProps>
@@ -115,23 +114,34 @@ export const UUIDKind: FieldKind = {
         // How to display list?
         return capitalCase(fieldInfo.name.replace('_id', ''))
     },
-    getDisplayComponent(fieldInfo: FieldInfo) {
-        return (props: DisplayProps<any>) => {
+    getDisplayComponent(fieldInfo: FieldInfo, entityInfo?: EntityInfo) {
+        return (props: DisplayProps<UUID>) => {
+            const { value } = props
             // Get ServiceInfo from context
             const appInfo = useContext(AppInfoContext)
             if (!appInfo) {
                 return <Spin />
             }
-            if (!fieldInfo.foreignEntityInfo) {
-                throw new Error('UUID field does not have a reference namespace')
+
+            if (!value) {
+                return <p>{'NA'}</p>
             }
 
-            const fieldEntityInfo = appInfo?.getEntityInfoByNamespace({ service: fieldInfo.foreignEntityInfo.serviceName!, entity: fieldInfo.foreignEntityInfo.entityName! })
-            if (!fieldEntityInfo) {
-                throw new Error('External EntityInfo not found for field')
+            // This is a foreign UUID
+            if (fieldInfo.foreignEntityInfo) {
+                const fieldEntityInfo = appInfo?.getEntityInfoByNamespace({ service: fieldInfo.foreignEntityInfo.serviceName!, entity: fieldInfo.foreignEntityInfo.entityName! })
+                if (!fieldEntityInfo) {
+                    throw new Error('External EntityInfo not found for field')
+                }
+
+                return <EntityLinkFromID id={props.value!} entityInfo={fieldEntityInfo} />
             }
 
-            return <EntityLinkFromID id={props.value} entityInfo={fieldEntityInfo} />
+            // Maybe this is not a foreign UUID but the primary ID
+            if (entityInfo) {
+                return <EntityLinkFromID id={value} entityInfo={entityInfo} />
+            }
+            return <p> {value} </p>
         }
     },
     getInputComponent() {
@@ -311,6 +321,7 @@ export const NestedKind: FieldKind = {
 }
 
 export const NestedInput = (props: FieldFormProps) => {
+    console.log('NestedInput: called with props', props)
     const { fieldInfo, formItemProps } = props
     console.log('nested.getInputComponent(): getting single InputComponent for fieldInfo', fieldInfo.name)
 
@@ -332,7 +343,12 @@ export const NestedInput = (props: FieldFormProps) => {
         throw new Error('Type Info not found for field')
     }
 
-    const copyFormItemProps = cloneDeep(formItemProps)
+    console.log('nested.getInputComponent(): making a clone of:', formItemProps)
+    const label = formItemProps?.label
+    delete formItemProps?.label
+    const copyFormItemProps = structuredClone(formItemProps)
+
+    console.log('nested.getInputComponent(): made a clone of the formItemProps')
     const name = formItemProps?.name == undefined ? fieldInfo.name : formItemProps?.name
 
     // Delete name from formItem props since this Form.Item is just a wrapper around other Form.Items, and AntD doesn't like this
@@ -342,7 +358,7 @@ export const NestedInput = (props: FieldFormProps) => {
     console.log('nested.getInputComponent(): calling TypeFormItems for typeInfo', fieldTypeInfo)
 
     return (
-        <Form.Item {...copyFormItemProps}>
+        <Form.Item label={label} {...copyFormItemProps}>
             <Card bordered={false}>
                 <TypeFormItems typeInfo={fieldTypeInfo} parentItemName={name} formItemProps={{ ...copyFormItemProps, ...{ wrapperCol: { span: 24 } } }} noLabels={true} usePlaceholders={true} />
             </Card>

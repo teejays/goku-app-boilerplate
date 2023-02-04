@@ -17,27 +17,20 @@ export const MenuWrapper = (props: {}) => {
 
     // Services
     const serviceInfos = store.getServiceInfos()
-    const subMenus = serviceInfos.map((svcInfo) => {
+
+    const items = serviceInfos.map((svcInfo) => {
         const entityInfos = svcInfo.entityInfos
 
-        const subMenuItems = entityInfos.map((entityInfo) => {
-            return (
-                <Menu.Item key={`${svcInfo.name}-${entityInfo.name}`}>
-                    <EntityListLink entityInfo={entityInfo} />
-                </Menu.Item>
-            )
+        const subItems = entityInfos.map((entityInfo) => {
+            return { key: `${svcInfo.name}-${entityInfo.name}`, label: <EntityListLink entityInfo={entityInfo} /> }
         })
-        return (
-            <SubMenu key={`${svcInfo.name}`} title={capitalCase(svcInfo.name)} icon={svcInfo.defaultIcon ? <svcInfo.defaultIcon /> : <HeartOutlined />}>
-                {subMenuItems}
-            </SubMenu>
-        )
+
+        const Icon = svcInfo.defaultIcon ?? HeartOutlined
+        return { key: `${svcInfo.name}`, label: capitalCase(svcInfo.name), title: capitalCase(svcInfo.name), icon: <Icon />, children: subItems }
     })
     return (
         <div>
-            <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
-                {subMenus}
-            </Menu>
+            <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items}></Menu>
         </div>
     )
 }

@@ -1,9 +1,9 @@
 import { AuthContext, authenticate } from 'common/AuthContext'
-import { Button, Card, Form, Input, Layout } from 'antd'
+import { Button, Card, Form, Input, Layout, Result, Spin, notification } from 'antd'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import React, { useContext } from 'react'
 
-import { httpPostCall } from 'providers/provider'
+import { useAxiosV2 } from 'providers/provider'
 import { useHistory } from 'react-router-dom'
 
 interface AuthenticateRequest {
@@ -16,25 +16,43 @@ interface AuthenticateResponse {
 }
 
 export const LoginForm = (props: {}) => {
-    const authInfo = useContext(AuthContext)
+    const authContext = useContext(AuthContext)
     const history = useHistory()
+
+    const [{ data, error, loading }, fetch] = useAxiosV2<AuthenticateResponse, AuthenticateRequest>({
+        method: 'POST',
+        path: 'users/authenticate',
+        skipInitialCall: true,
+        config: {
+            notifyOnError: true,
+        },
+    })
 
     const onFinish = (values: any) => {
         console.log('Login Form: Submission', values)
-        httpPostCall<AuthenticateResponse, AuthenticateRequest>({ path: 'users/authenticate', params: values }).then((resp) => {
-            if (resp.errMessage) {
-                return
-            }
-            if (resp.data) {
-                authenticate({ authSession: { token: resp.data.token }, setAuthSession: authInfo.setAuthSession })
-                history.push('/')
-            }
+
+        fetch({
+            data: values,
         })
+
+        console.log('Fetching/fetched:', loading, error, data)
     }
 
     const inputStyles = {
         minWidth: 300,
         maxWidth: 600,
+    }
+
+    if (loading) {
+        return <Spin size="large" />
+    }
+
+    if (data) {
+        authenticate({
+            authSession: { token: data.token },
+            setAuthSession: authContext?.setAuthSession,
+        })
+        history.push('/')
     }
 
     return (
@@ -51,7 +69,7 @@ export const LoginForm = (props: {}) => {
                         <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Email" />
                     </Form.Item>
                     <Form.Item name="password" rules={[{ required: true }]} style={inputStyles}>
-                        <Input prefix={<LockOutlined className="site-form-item-icon" />} type="password" placeholder="Password" />
+                        <Input prefix={<LockOutlined className="site-form-item-icon" />} type="current-password" placeholder="Password" />
                     </Form.Item>
 
                     <Form.Item>

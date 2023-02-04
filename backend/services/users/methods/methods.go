@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -35,7 +36,8 @@ func AuthenticateUser(ctx context.Context, req types_users.AuthenticateRequest) 
 		},
 	})
 	if len(listUsersResp.Items) < 1 {
-		return resp, fmt.Errorf("User: %w", errutil.ErrNotFound)
+		err := fmt.Errorf("User: %w", errutil.ErrNotFound)
+		return resp, errutil.WrapGerror(err, http.StatusUnauthorized, "Invalid email and/or password")
 	}
 	panics.If(len(listUsersResp.Items) > 1, "Multiple (%d) users found with the same email: %s", len(listUsersResp.Items), req.Email)
 
@@ -48,7 +50,7 @@ func AuthenticateUser(ctx context.Context, req types_users.AuthenticateRequest) 
 
 	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(req.Password))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return resp, fmt.Errorf("hashed password did not match: %w", errutil.ErrBadCredentials)
+		return resp, errutil.NewGerror(http.StatusUnauthorized, "Invalid email and/or password", "submitted & hashed password did not match")
 	}
 	if err != nil {
 		return resp, fmt.Errorf("comparing hashed password: %w", err)

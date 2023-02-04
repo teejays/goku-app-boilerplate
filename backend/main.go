@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -14,6 +15,7 @@ import (
 
 	"<goku_app_backend_go_module_name>/backend/gateway"
 	db_connection "<goku_app_backend_go_module_name>/backend/goku.generated/db_connection"
+	"<goku_app_backend_go_module_name>/backend/goku.generated/goku_buildinfo"
 	http_handlers "<goku_app_backend_go_module_name>/backend/goku.generated/http_handlers"
 	"<goku_app_backend_go_module_name>/backend/services/users/auth"
 )
@@ -30,6 +32,7 @@ func mainErr() error {
 
 	clog.LogToSyslog = false // No need to log to Syslog, since we may run this on Docker
 
+	clog.Noticef("Running backend app generated with Goku build time %s", goku_buildinfo.BuildTimeStr)
 	go func() {
 		err := reload.Do(clog.Noticef)
 		if err != nil {
@@ -50,7 +53,7 @@ func mainErr() error {
 
 	// Middlewares
 	preMiddlewareFuncs := []gopi.MiddlewareFunc{gopi.MiddlewareFunc(gopi.LoggerMiddleware)}
-	postMiddlewareFuncs := []gopi.MiddlewareFunc{gopi.SetJSONHeaderMiddleware}
+	postMiddlewareFuncs := []gopi.MiddlewareFunc{gopi.SetJSONHeaderMiddleware, SetCorsAllowHeaderMiddleware}
 	authMiddlewareFunc, err := auth.GetAuthenticateHTTPMiddleware()
 	if err != nil {
 		return fmt.Errorf("constructing an AuthenticatorFunc: %w", err)
@@ -90,4 +93,13 @@ func mainErr() error {
 	wg.Wait()
 
 	return nil
+}
+
+func SetCorsAllowHeaderMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set the header
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
 }

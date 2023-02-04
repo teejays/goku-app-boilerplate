@@ -1,10 +1,14 @@
 import { AppInfo, ServiceInfoCommon } from 'common'
 
+import { PersonName } from 'goku.generated/types/types.generated'
+import { User } from 'goku.generated/types/users/user/types.generated'
+
 export interface OverrideProps {
     appInfo: AppInfo<ServiceInfoCommon>
 }
 
 export const applyEntityInfoOverrides = (props: OverrideProps) => {
+    const { appInfo } = props
     // Sample override looks like:
     /*
     {
@@ -14,4 +18,11 @@ export const applyEntityInfoOverrides = (props: OverrideProps) => {
         appInfo.updateEntityInfo(entityInfo)
     }
     */
+
+    {
+        const entityInfo = appInfo.getEntityInfo<User>('users', 'user')
+        entityInfo.columnsFieldsForListView = ['id', 'email', 'phone_number', 'created_at']
+        entityInfo.getHumanNameFunc = (r, entityInfo) => `${r.name.first} ${r.name.middle_initial ?? ''} ${r.name.last}`
+        appInfo.updateEntityInfo(entityInfo)
+    }
 }

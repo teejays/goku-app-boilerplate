@@ -1,26 +1,20 @@
 services:
   # Use this to build the app using the stable version of Goku
   builder:
-    # environment:
-      # - SSH_AUTH_SOCK=/ssh-agent
-    build:
-      context: .
-      dockerfile: Dockerfile.builder
-      args:
-        - GIT_CLONE_GOKU=1
-        - GOKU_BIN_DIR=/go-goku/bin
-      secrets:
-        - ssh_private_key
+    image: iamteejay/goku:app_builder_latest
     volumes:
-      - "./:/go-goku/app"
+      - "./:${CONTAINER_APP_ROOT_DIR}"
+      # Copy the goku binary, so we can use it to run th generator
+      - "${GOKU_BIN_DIR_SRC}/${GOKU_BIN_NAME}:/go-goku/goku/bin/${GOKU_BIN_NAME}"
+    working_dir: /go-goku
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USERNAME=postgres
       - PGPASSWORD=postgres
       - DATABASE_HOST=database
-      - GOKU_BIN_DIR=/go-goku/bin
     networks:
       - common-network
+    entrypoint: ["tail", "-f", "/dev/null"]
 
   # Runs the database
   database:
@@ -31,10 +25,9 @@ services:
       - 5432:5432
     networks:
       - common-network
-      - goku-network-database-dev
-    volumes:
-      - "./:/go-goku/app"
-    working_dir: "/go-goku/app"
+    # volumes:
+    #   - "./:${CONTAINER_APP_ROOT_DIR}"
+    working_dir: /go-goku
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USERNAME=postgres
@@ -53,23 +46,29 @@ services:
     networks:
       - common-network
     volumes:
-      - "./:/go-goku/app"
+      - "./:${CONTAINER_APP_ROOT_DIR}"
+      # Copy workspace dev stuff. Comment these out for production!
+      - "${GOGOKU_ROOT_DIR}/go.work:/go-goku/go.work"
+      - "${GOGOKU_ROOT_DIR}/goku-util:/go-goku/goku-util"
+      - "${GOGOKU_ROOT_DIR}/gopi:/go-goku/gopi"
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USERNAME=postgres
       - PGPASSWORD=postgres
       - DATABASE_HOST=database
-      - GOKU_BIN_DIR=/go-goku/bin
-    working_dir: /go-goku/app
-    command: ["make", "run-backend"]
+    working_dir: /go-goku
+    command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR}", "-f", "container.Makefile", "backend-dev"] # Development
+    # command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR}", "-f", "container.Makefile", "backend"] # Production
 
   # Runs the frontend app
   frontend:
+    # image: iamteejay/goku:app_frontend_latest
     build:
       context: frontend
       dockerfile: Dockerfile.frontend
     depends_on:
       - builder
+      - database
       - backend
     ports:
       - 3000:3000
@@ -80,15 +79,9 @@ services:
     networks:
       - common-network
     volumes:
-      - "./:/go-goku/app"
-    working_dir: /go-goku/app
-    command: [sh, -c, "yarn workspace admin install && yarn workspace admin start"]
+      - "./:${CONTAINER_APP_ROOT_DIR}"
+    working_dir: /go-goku
+    command: [sh, -c, "make -C ${CONTAINER_APP_ROOT_DIR} -f container.Makefile frontend-admin-run"]
 
 networks:
   common-network:
-  goku-network-database-dev:
-      name: goku-network-database-dev
-
-secrets:
-  ssh_private_key:
-    file: ~/.ssh/id_ed25519

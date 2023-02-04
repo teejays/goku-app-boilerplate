@@ -5,22 +5,16 @@ import { MenuOutlined } from '@ant-design/icons'
 import React from 'react'
 
 export const AppHeader = (props: {}) => {
-    const menu = (
-        <Menu>
-            <Menu.Item key="0">
-                <Link to="/logout">Logout</Link>
-            </Menu.Item>
-            <Menu.Item key="1">
-                <Link to="/">Profile [todo]</Link>
-            </Menu.Item>
-        </Menu>
-    )
+    const menuItems = [
+        { key: '0', label: <Link to="/logout">Logout</Link> },
+        { key: '1', label: <Link to="/">Profile [todo]</Link> },
+    ]
 
     return (
         <Row>
             <Col span={1} offset={23}>
                 <Space align="end" direction="vertical" style={{ width: '100%' }}>
-                    <Dropdown overlay={menu} trigger={['click']} placement="bottomLeft">
+                    <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomLeft">
                         <MenuOutlined style={{ color: '#efefef', marginLeft: '10px' }} />
                     </Dropdown>
                 </Space>

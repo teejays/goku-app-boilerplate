@@ -3,5 +3,8 @@
     "workspaces": [
         "frontend/admin"
     ],
-    "packageManager": "yarn@3.2.1"
+    "packageManager": "yarn@3.2.1",
+    "devDependencies": {
+        "process": "^0.11.10"
+    }
 }

@@ -4,8 +4,8 @@ import React, { CSSProperties, useState } from 'react'
 
 import { Redirect } from 'react-router-dom'
 import { TypeFormItems } from 'common/Form'
-import { addEntity } from 'providers/provider'
 import { capitalCase } from 'change-case'
+import { useAddEntity } from 'providers/provider'
 
 interface Props<E extends EntityMinimal> {
     entityInfo: EntityInfo<E>
@@ -22,18 +22,21 @@ export const DefaultAddView = <E extends EntityMinimal>(props: Props<E>) => {
     const onFinish = (values: E) => {
         console.log('Form onFinish', values)
 
-        addEntity(entityInfo, values)
-            .then((entity) => {
-                setSubmitted(true)
-                setEntity(entity as E)
-            })
-            .catch((err) => {
-                console.log(err.response)
-                notification['error']({
-                    message: 'Adding ' + entityInfo.getEntityNameFormatted(),
-                    description: `${err}`,
-                })
-            })
+        const [{ loading, error, data }] = useAddEntity<E>({
+            entityInfo: entityInfo,
+            data: values,
+        })
+
+        if (loading) {
+            return
+        }
+        if (error) {
+            return
+        }
+        if (data) {
+            setSubmitted(true)
+            setEntity(data)
+        }
     }
 
     // After form has been submitted and entity created, redirect to the detail page

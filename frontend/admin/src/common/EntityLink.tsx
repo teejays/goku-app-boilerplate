@@ -1,12 +1,12 @@
+import { Alert, Spin } from 'antd'
 import { EntityInfo, EntityInfoCommon } from './EntityInfo'
 import { EntityInfoCommonV2, EntityMinimal, EntityProps, TypeInfoCommon } from 'common'
 import React, { useEffect, useState } from 'react'
 
 import { Link } from 'react-router-dom'
-import { Spin } from 'antd'
 import { UUID } from './Primitives'
 import { capitalCase } from 'change-case'
-import { getEntity } from 'providers/provider'
+import { useGetEntity } from 'providers/provider'
 
 interface EntityLinkProps<E extends EntityMinimal> {
     entity: E
@@ -54,25 +54,18 @@ interface EntityLinkFromIDProps<E extends EntityMinimal> {
 export const EntityLinkFromID = <E extends EntityMinimal = any>(props: EntityLinkFromIDProps<E>) => {
     const { id, entityInfo } = props
 
-    const [entity, setEntity] = useState<E | null>(null)
-    const [isLoaded, setIsLoaded] = useState<boolean>(false)
+    const [{ loading, error, data: entity }] = useGetEntity<E>({ entityInfo: entityInfo, params: { id: id } })
 
-    useEffect(() => {
-        async function fetchData() {
-            const data = await getEntity<E>(entityInfo, id)
-            setEntity(data)
-            setIsLoaded(true)
-        }
-
-        fetchData()
-    }, [entityInfo, id])
-
-    if (!isLoaded) {
+    if (loading) {
         return <Spin size="small" />
     }
 
+    if (error) {
+        return <Alert message={error} type="error" />
+    }
+
     if (!entity) {
-        return <p>No Entity found</p>
+        return <Alert message="Panic! No entity data returned" type="error" />
     }
 
     // Otherwise return a Table view

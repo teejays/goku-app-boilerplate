@@ -14,6 +14,7 @@ import (
 	api "github.com/teejays/gopi"
 
 	user_types "<goku_app_backend_go_module_name>/backend/services/users/user/goku.generated/types"
+
 	"github.com/teejays/goku-util/ctxutil"
 )
 
@@ -125,13 +126,13 @@ func GetAuthenticateHTTPMiddleware() (api.MiddlewareFunc, error) {
 			// Get the token
 			token, err := extractBearerTokenFromHTTPRequest(r)
 			if err != nil {
-				api.WriteError(w, http.StatusUnauthorized, err, false, nil)
+				api.WriteError(w, http.StatusUnauthorized, err)
 				return
 			}
 
 			ctx, err := authenticatorFunc(r.Context(), token)
 			if err != nil {
-				errutil.HandleHTTPResponseError(w, err)
+				api.WriteError(w, http.StatusUnauthorized, err)
 				return
 			}
 

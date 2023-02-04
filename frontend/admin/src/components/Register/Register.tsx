@@ -5,7 +5,7 @@ import { PersonName, PhoneNumber } from 'goku.generated/types/types.generated'
 import React, { useContext } from 'react'
 
 import { Email } from 'common'
-import { httpPostCall } from 'providers/provider'
+import { useAxiosV2 } from 'providers/provider'
 import { useHistory } from 'react-router-dom'
 
 interface RegisterUserRequest {
@@ -23,21 +23,35 @@ export const RegisterForm = (props: {}) => {
     const authInfo = useContext(AuthContext)
     const history = useHistory()
 
+    const [{ data, error, loading }, fetch] = useAxiosV2<RegisterUserResponse, RegisterUserRequest>({
+        method: 'POST',
+        path: 'users/register',
+        skipInitialCall: true,
+        config: {
+            notifyOnError: true,
+        },
+    })
+
     const onFinish = (values: any) => {
-        console.log('Register Form: Submission', values)
-        httpPostCall<RegisterUserResponse, RegisterUserRequest>({ path: 'users/register', params: values }).then((resp) => {
-            if (resp.errMessage) {
-                notification['error']({
-                    message: 'HTTP GET',
-                    description: `${resp.errMessage}`,
-                })
-                return
-            }
-            if (resp.data) {
-                authenticate({ authSession: { token: resp.data.token }, setAuthSession: authInfo.setAuthSession })
-                history.push('/')
-            }
+        console.log('Login Form: Submission', values)
+
+        fetch({
+            data: values,
         })
+
+        if (loading) {
+            return
+        }
+        if (error) {
+            return
+        }
+        if (data) {
+            authenticate({
+                authSession: { token: data.token },
+                setAuthSession: authInfo?.setAuthSession,
+            })
+            history.push('/')
+        }
     }
 
     const inputStyles = {

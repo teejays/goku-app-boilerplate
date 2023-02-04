@@ -1,4 +1,5 @@
 import React from 'react'
+import { json } from 'stream/consumers'
 
 export interface AuthSession {
     token: string
@@ -9,25 +10,40 @@ export interface AuthContextProps {
     setAuthSession?: (value: AuthSession | undefined) => void
 }
 
-export const AuthContext = React.createContext<AuthContextProps>({})
+export const AuthContext = React.createContext<AuthContextProps | undefined>(undefined)
 AuthContext.displayName = 'AuthContext'
 
 // Helpers
-export const authenticate = (props: AuthContextProps | undefined): boolean => {
-    if (!props || !props.authSession || !props.setAuthSession) {
+export const authenticate = (props: AuthContextProps): boolean => {
+    if (!props.setAuthSession) {
+        throw new Error('No setAuthSession method provided')
+    }
+
+    const storedAuthSessionJSON = localStorage.getItem('authSession')
+    const storedAuthSession = storedAuthSessionJSON ? JSON.parse(storedAuthSessionJSON) : undefined
+
+    const authSession = props.authSession ?? storedAuthSession
+
+    if (!authSession) {
+        // No session provided or found
         return false
     }
-    props.setAuthSession(props.authSession)
+
+    props.setAuthSession(authSession)
+    if (authSession !== storedAuthSession) {
+        localStorage.setItem('authSession', JSON.stringify(authSession))
+    }
+
     return true
 }
 
-export const logout = (props: AuthContextProps | undefined) => {
-    if (props && props.setAuthSession) {
-        console.log('setting authSession to undefined')
+export const logout = (props?: AuthContextProps) => {
+    if (props?.setAuthSession) {
         props.setAuthSession(undefined)
     }
+    localStorage.removeItem('authSession')
 }
 
-export const isAuthenticated = (authSession: AuthSession | undefined): boolean => {
+export const isAuthenticated = (authSession?: AuthSession): boolean => {
     return !!authSession && !!authSession.token
 }

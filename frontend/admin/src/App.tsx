@@ -3,7 +3,7 @@ import './App.less'
 import * as global from 'goku.generated/types/types.generated'
 
 import { AppInfoContext, EntityInfo, EntityMinimal, ServiceInfoContext } from 'common'
-import { AuthContext, AuthSession, isAuthenticated } from 'common/AuthContext'
+import { AuthContext, AuthSession, authenticate, isAuthenticated } from 'common/AuthContext'
 import { BrowserRouter, Route, Switch, useParams } from 'react-router-dom'
 import { DefaultAddView, DefaultDetailView, DefaultListView } from 'components/default'
 import { Layout, Spin } from 'antd'
@@ -26,19 +26,8 @@ const App = () => {
 
     // Load Auth Session from local storage, upon loading
     useEffect(() => {
-        const loadedAuthSessionJSON = localStorage.getItem('authSession')
-        if (loadedAuthSessionJSON && loadedAuthSessionJSON !== 'undefined') {
-            console.log('Loaded AuthSession', loadedAuthSessionJSON)
-            const loadedAuthSession = JSON.parse(loadedAuthSessionJSON) as AuthSession
-            setAuthSession(loadedAuthSession)
-        }
+        authenticate({ authSession, setAuthSession })
     }, [])
-
-    // If Auth session changes, update the local storage
-    useEffect(() => {
-        console.log('useEffect(): Auth session changed, changing local storage to', authSession)
-        localStorage.setItem('authSession', JSON.stringify(authSession))
-    }, [authSession])
 
     return (
         <div className="App">
@@ -51,7 +40,7 @@ const App = () => {
 
 const AppContexted = (props: {}) => {
     const authInfo = useContext(AuthContext)
-    const authenticated = isAuthenticated(authInfo.authSession)
+    const authenticated = isAuthenticated(authInfo?.authSession)
 
     if (!authenticated) {
         return <UnauthenticatedApp />

@@ -4,12 +4,12 @@ import React, { useContext, useEffect } from 'react'
 import { Redirect } from 'react-router-dom'
 
 export const LogoutPage = (props: {}) => {
-    const authInfo = useContext(AuthContext)
+    const authContext = useContext(AuthContext)
+    console.log('Logging out')
+
     useEffect(() => {
-        if (authInfo.setAuthSession) {
-            logout(authInfo)
-        }
-    }, [authInfo])
+        logout(authContext)
+    }, [authContext])
 
     return <Redirect to="/" />
 }

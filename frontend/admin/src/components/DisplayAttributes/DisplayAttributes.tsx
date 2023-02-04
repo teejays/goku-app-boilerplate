@@ -1,11 +1,11 @@
-import { AppInfoContext, EntityInfo, EntityLink, EntityMinimal, FieldInfo, TypeInfo, TypeMinimal, UUID } from 'common'
+import { AppInfoContext, EntityInfo, EntityLink, EntityLinkFromID, EntityMinimal, FieldInfo, TypeInfo, TypeMinimal, UUID } from 'common'
 import { Descriptions, Empty, List, Spin } from 'antd'
 import { PersonName, PhoneNumber } from 'goku.generated/types/types.generated'
 import React, { useContext, useEffect, useState } from 'react'
 
 import ReactJson from 'react-json-view'
-import { getEntity } from 'providers/provider'
 import { getValueForField } from 'common/FieldKind'
+import { useGetEntity } from 'providers/provider'
 
 // TypeDisplay component displays a Type
 export interface TypeDisplayProps<T extends TypeMinimal> {
@@ -24,21 +24,19 @@ export const TypeDisplay = <T extends TypeMinimal>(props: TypeDisplayProps<T>) =
             return !fieldInfo.isMetaField
         })
     }
-    const descriptionsItems: JSX.Element[] = filteredFields.map(
-        (fieldInfo): JSX.Element => {
-            const fieldKind = fieldInfo.kind
-            let DisplayComponent = fieldKind.getDisplayComponent(fieldInfo)
-            if (fieldInfo.isRepeated) {
-                DisplayComponent = fieldKind.getDisplayRepeatedComponent(fieldInfo)
-            }
-
-            return (
-                <Descriptions.Item key={fieldInfo.name} label={fieldInfo.kind.getLabel(fieldInfo)} span={3}>
-                    <FieldDisplay fieldInfo={fieldInfo} objectValue={objectValue} DisplayComponent={DisplayComponent} />
-                </Descriptions.Item>
-            )
+    const descriptionsItems: JSX.Element[] = filteredFields.map((fieldInfo): JSX.Element => {
+        const fieldKind = fieldInfo.kind
+        let DisplayComponent = fieldKind.getDisplayComponent(fieldInfo)
+        if (fieldInfo.isRepeated) {
+            DisplayComponent = fieldKind.getDisplayRepeatedComponent(fieldInfo)
         }
-    )
+
+        return (
+            <Descriptions.Item key={fieldInfo.name} label={fieldInfo.kind.getLabel(fieldInfo)} span={3}>
+                <FieldDisplay fieldInfo={fieldInfo} objectValue={objectValue} DisplayComponent={DisplayComponent} />
+            </Descriptions.Item>
+        )
+    })
 
     // Return a Table view
     return (
@@ -159,41 +157,7 @@ export const getForeignEntityFieldDisplayComponent = <ForeignEntityType extends 
         }
 
         const { value: foreignEntityId } = props
-        const [foreignEntity, setForeignEntity] = useState<ForeignEntityType>()
 
-        useEffect(() => {
-            async function fetchData(foreignId: UUID, foreignEntityInfo: EntityInfo<ForeignEntityType>) {
-                const data = await getEntity(foreignEntityInfo, foreignId)
-                if (data) {
-                    setForeignEntity(data)
-                }
-            }
-
-            if (!foreignEntityId) {
-                return
-            }
-
-            if (!foreignEntityInfo) {
-                return
-            }
-
-            fetchData(foreignEntityId, foreignEntityInfo)
-        }, [store, foreignEntityId, foreignEntityInfo])
-
-        if (!props.value) {
-            return <Empty />
-        }
-        if (!store) {
-            return <Spin />
-        }
-
-        if (!foreignEntityInfo) {
-            return <Spin />
-        }
-        if (!foreignEntity) {
-            return <Spin />
-        }
-
-        return <EntityLink entity={foreignEntity} entityInfo={foreignEntityInfo} />
+        return <EntityLinkFromID entityInfo={foreignEntityInfo!} id={foreignEntityId!} />
     }
 }

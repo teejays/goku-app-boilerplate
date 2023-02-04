@@ -1,6 +1,7 @@
-FROM node:18-alpine3.15
+FROM node:19-alpine3.16
 
 # TODO: Update System
+RUN apk add --update make
 
 # Use yarn v2
 RUN corepack enable

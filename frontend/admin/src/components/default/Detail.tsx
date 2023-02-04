@@ -1,9 +1,9 @@
-import { Card, Spin } from 'antd'
+import { Card, Result, Spin } from 'antd'
 import { EntityInfo, EntityMinimal, UUID } from 'common'
 import React, { useEffect, useState } from 'react'
 
 import { TypeDisplay } from 'components/DisplayAttributes/DisplayAttributes'
-import { getEntity } from 'providers/provider'
+import { useGetEntity } from 'providers/provider'
 
 interface Props<E extends EntityMinimal> {
     entityInfo: EntityInfo<E>
@@ -13,25 +13,18 @@ interface Props<E extends EntityMinimal> {
 export const DefaultDetailView = <E extends EntityMinimal>(props: Props<E>) => {
     const { entityInfo, objectId } = props
 
-    const [entity, setEntity] = useState<E | null>(null)
-    const [isLoaded, setIsLoaded] = useState<boolean>(false)
+    const [{ loading, error, data: entity }] = useGetEntity<E>({ entityInfo: entityInfo, params: { id: objectId } })
 
-    useEffect(() => {
-        async function fetchData() {
-            const data = await getEntity<E>(entityInfo, objectId)
-            setEntity(data)
-            setIsLoaded(true)
-        }
-
-        fetchData()
-    }, [entityInfo, objectId])
-
-    if (!isLoaded) {
+    if (loading) {
         return <Spin size="large" />
     }
 
+    if (error) {
+        return <Result status="error" title="Something went wrong" subTitle={error} />
+    }
+
     if (!entity) {
-        return <p>No Entity data found</p>
+        return <Result status="error" subTitle="Panic! No entity data returned" />
     }
 
     // Otherwise return a Table view

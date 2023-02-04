@@ -7,7 +7,7 @@ import React, { useContext, useState } from 'react'
 import { FieldFormProps } from './FieldKind'
 import { SizeType } from 'antd/lib/config-provider/SizeContext'
 import { capitalCase } from 'change-case'
-import { queryByTextEntity } from 'providers/provider'
+import { useListEntityByTextQuery } from 'providers/provider'
 
 export const combineFormItemName = (parentName: NamePath | undefined, currentName: string | number): NamePath => {
     if (parentName !== undefined) {
@@ -69,8 +69,6 @@ export const TypeFormItems = <T extends TypeMinimal>(props: TypeFormItemsProps<T
 
     return <>{formItems}</>
 }
-
-interface OurTimePickerProps {}
 
 export interface FormInputProps {
     formItemProps?: Partial<FormItemProps>
@@ -177,19 +175,33 @@ export const ForeignEntitySelectInput = <FET extends EntityMinimal = any>(props:
         }
         console.log('Searching for Foreign Entity with value:', value)
         setIsFetching(true)
-        queryByTextEntity<FET>(foreignEntityInfo, value).then((resp) => {
-            console.log('ForeignObject Data:', resp)
-            if (resp?.items) {
-                console.log('Foreign Entity Search Response', resp.items)
-                setOptions(
-                    resp.items.map((e: FET) => ({
-                        value: e.id,
-                        label: foreignEntityInfo.getHumanName(e),
-                    }))
-                )
-                setIsFetching(false)
-            }
+
+        const [{ loading, error, data }] = useListEntityByTextQuery<FET>({
+            entityInfo: foreignEntityInfo,
+            params: {
+                query_text: value,
+            },
         })
+
+        if (loading && !isFetching) {
+            setIsFetching(true)
+            return
+        }
+
+        if (error) {
+            console.error('Could not ListEntityByTextQuery:', error)
+            return
+        }
+
+        if (data) {
+            setOptions(
+                data.items.map((e: FET) => ({
+                    value: e.id,
+                    label: foreignEntityInfo.getHumanName(e),
+                }))
+            )
+            setIsFetching(false)
+        }
     }
     const handleChange = (value: string) => {
         console.log('Foreign Entity - Change detected:', value)
