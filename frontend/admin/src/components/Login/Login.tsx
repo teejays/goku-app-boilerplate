@@ -69,7 +69,7 @@ export const LoginForm = (props: {}) => {
                         <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Email" />
                     </Form.Item>
                     <Form.Item name="password" rules={[{ required: true }]} style={inputStyles}>
-                        <Input prefix={<LockOutlined className="site-form-item-icon" />} type="current-password" placeholder="Password" />
+                        <Input prefix={<LockOutlined className="site-form-item-icon" />} type="password" placeholder="Password" />
                     </Form.Item>
 
                     <Form.Item>

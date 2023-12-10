@@ -68,8 +68,11 @@ backend-go-mod:
 backend-build: backend-go-mod
 	${CMD_BACKEND_BUILD}
 
-backend-build-dev:
++# This command is the same as above `backend-build` but calls the build from the parent GOGOKU dir,
++# which allows it to use the Go workspace (which points to local modules)
++backend-build-dev: backend-go-mod
 	cd ${GOGOKU_ROOT_DIR}
+	APP_NAME=${APP_NAME} make -C ${GOGOKU_ROOT_DIR} go-work-init-app
 	${CMD_BACKEND_BUILD}
 	cd ${CURRENT_DIR}
 

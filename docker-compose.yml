@@ -48,8 +48,8 @@ services:
       - common-network
     volumes:
       - "./:${CONTAINER_APP_ROOT_DIR}"
-      # Copy workspace dev stuff. Comment these out for production!
-      - "${GOGOKU_ROOT_DIR}/go.work:/go-goku/go.work"
+      # Copy workspace dev stuff. Only needed during Goku development. Comment these out for app development!
+      - "${GOGOKU_ROOT_DIR}/Makefile:/go-goku/Makefile"
       - "${GOGOKU_ROOT_DIR}/goku-util:/go-goku/goku-util"
       - "${GOGOKU_ROOT_DIR}/gopi:/go-goku/gopi"
     environment:
