@@ -1,12 +1,12 @@
 services:
   # Use this to build the app using the stable version of Goku
   builder:
-    container_name: goku_builder
+    container_name: goku_${APP_NAME:?err}_builder
     image: iamteejay/goku:app_builder_latest
     volumes:
       - "./:${CONTAINER_APP_ROOT_DIR}"
-      # Copy the goku binary, so we can use it to run th generator
-      - "${GOKU_BIN_DIR_SRC}/${GOKU_BIN_NAME}:/go-goku/goku/bin/${GOKU_BIN_NAME}"
+      # Copy the goku binary, so we can use it to run the generator
+      - "${GOKU_BIN_DIR:?err}/${GOKU_BIN_NAME:?err}:/go-goku/goku/bin/${GOKU_BIN_NAME:?err}"
     working_dir: /go-goku
     environment:
       - POSTGRES_PASSWORD=postgres
@@ -19,7 +19,7 @@ services:
 
   # Runs the database
   database:
-    container_name: goku_database
+    container_name: goku_${APP_NAME:?err}_database
     image: postgres:alpine3.15
     depends_on:
       - builder
@@ -36,7 +36,7 @@ services:
   
   # Runs the backend
   backend:
-    container_name: goku_backend
+    container_name: goku_${APP_NAME:?err}_backend
     image: golang:1.18.3
     depends_on:
       - builder
@@ -47,23 +47,22 @@ services:
     networks:
       - common-network
     volumes:
-      - "./:${CONTAINER_APP_ROOT_DIR}"
+      - "./:${CONTAINER_APP_ROOT_DIR:?err}"
       # Copy workspace dev stuff. Only needed during Goku development. Comment these out for app development!
-      - "${GOGOKU_ROOT_DIR}/Makefile:/go-goku/Makefile"
-      - "${GOGOKU_ROOT_DIR}/goku-util:/go-goku/goku-util"
-      - "${GOGOKU_ROOT_DIR}/gopi:/go-goku/gopi"
+      - "${GOGOKU_ROOT_DIR:?err}/goku-util:/go-goku/goku-util"
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USERNAME=postgres
       - PGPASSWORD=postgres
       - DATABASE_HOST=database
+      - APP_NAME=${APP_NAME}
+      - GOKU_DEV=${GOKU_DEV} # Pass it as env variable so app build can use local packages
     working_dir: /go-goku
-    command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR}", "-f", "container.Makefile", "backend-dev"] # For Goku development
-    # command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR}", "-f", "container.Makefile", "backend"] # For pure app development
+    command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR:?err}", "-f", "${CONTAINER_MAKE_FILE_NAME:?err}", "backend"] # For pure app development
 
   # Runs the frontend app
   frontend:
-    container_name: goku_frontend
+    container_name: goku_${APP_NAME:?err}_frontend
     # image: iamteejay/goku:app_frontend_latest
     build:
       context: frontend
@@ -81,9 +80,9 @@ services:
     networks:
       - common-network
     volumes:
-      - "./:${CONTAINER_APP_ROOT_DIR}"
+      - "./:${CONTAINER_APP_ROOT_DIR:?err}"
     working_dir: /go-goku
-    command: [sh, -c, "make -C ${CONTAINER_APP_ROOT_DIR} -f container.Makefile frontend-admin-run"]
+    command: [sh, -c, "make -C ${CONTAINER_APP_ROOT_DIR:?err} -f ${CONTAINER_MAKE_FILE_NAME:?err} frontend-admin-run"]
 
 networks:
   common-network:

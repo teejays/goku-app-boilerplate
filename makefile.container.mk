@@ -18,12 +18,11 @@ GOARCH=$(shell go env GOARCH)
 GOKU_BINARY_NAME=goku.$(GOOS)_$(GOARCH).latest
 
 # DIRs
-CURRENT_DIR=$(shell pwd)
-APP_NAME=$(shell basename ${CURRENT_DIR})
+CURRENT_DIR ?= $(shell pwd)
+APP_NAME ?= $(shell basename ${CURRENT_DIR})
 
 GOGOKU_ROOT_DIR ?= /go-goku
-APP_ROOT_DIR=${CURRENT_DIR}
-#${GOGOKU_ROOT_DIR}/${APP_NAME}
+APP_ROOT_DIR ?= ${GOGOKU_ROOT_DIR}/${APP_NAME}
 
 # GOKU_BIN_DIR is the dir in the container where goku binary will be put
 GOKU_BIN_DIR = ${GOGOKU_ROOT_DIR}/goku/bin
@@ -63,24 +62,29 @@ CMD_BACKEND_BUILD=$(GO) build -o ${APP_BIN_DIR}/app $(APP_ROOT_DIR)/backend/main
 CMD_BACKEND_RUN=GOKU_APP_PATH=$(APP_ROOT_DIR) ${APP_BIN_DIR}/app
 
 backend-go-mod:
-	$(GO) mod tidy
+	cd $(APP_ROOT_DIR)/backend && $(GO) mod tidy && cd ${CURRENT_DIR}
 
-backend-build: backend-go-mod
+# If GOKU_DEV mode, run the command from the base /go-goku container directory to able to use go.work substitutions
+backend-build: backend-go-mod backend-go-work-init
 	${CMD_BACKEND_BUILD}
 
-+# This command is the same as above `backend-build` but calls the build from the parent GOGOKU dir,
-+# which allows it to use the Go workspace (which points to local modules)
-+backend-build-dev: backend-go-mod
-	cd ${GOGOKU_ROOT_DIR}
-	APP_NAME=${APP_NAME} make -C ${GOGOKU_ROOT_DIR} go-work-init-app
-	${CMD_BACKEND_BUILD}
+backend-go-work-init:
+	rm -f ${APP_ROOT_DIR}/go.work ${APP_ROOT_DIR}/go.work.sum
+	cd ${APP_ROOT_DIR} && \
+	go work init && \
+	go work use ./backend && \
 	cd ${CURRENT_DIR}
+ifeq ($(GOKU_DEV),TRUE)
+	cd ${APP_ROOT_DIR} && \
+	go work use ${GOGOKU_ROOT_DIR}/goku-util && \
+	go work use ${GOGOKU_ROOT_DIR}/goku-util/gopi && \
+	cd ${CURRENT_DIR}
+endif
 
 backend-run:
 	${CMD_BACKEND_RUN}
 
 backend: backend-build backend-run
-backend-dev: backend-build-dev backend-run
 
 
 # # # # # # # # #
