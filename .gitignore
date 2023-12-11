@@ -7,3 +7,4 @@ goku.generated/*
 db/schema
 debug
 node_modules
+.yarn

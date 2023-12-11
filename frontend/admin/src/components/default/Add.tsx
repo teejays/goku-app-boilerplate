@@ -1,4 +1,4 @@
-import { Button, Form, Layout, Typography, notification } from 'antd'
+import { Button, Form, Layout, Spin, Typography, notification } from 'antd'
 import { EntityInfo, EntityMinimal, getEntityDetailPath } from 'common'
 import React, { CSSProperties, useState } from 'react'
 
@@ -19,28 +19,26 @@ export const DefaultAddView = <E extends EntityMinimal>(props: Props<E>) => {
 
     const [form] = Form.useForm()
 
+    const [{ loading, error, data }, fetch] = useAddEntity<E>({
+        entityInfo: entityInfo,
+    })
+
+    console.log('States:', loading, error, data)
+
+    if (!loading && !error && data && !entity) {
+        console.log('Data:', data)
+        setEntity(data)
+    }
+
     const onFinish = (values: E) => {
         console.log('Form onFinish', values)
-
-        const [{ loading, error, data }] = useAddEntity<E>({
-            entityInfo: entityInfo,
-            data: values,
-        })
-
-        if (loading) {
-            return
-        }
-        if (error) {
-            return
-        }
-        if (data) {
-            setSubmitted(true)
-            setEntity(data)
-        }
+        fetch({ data: values })
+        setSubmitted(true)
     }
 
     // After form has been submitted and entity created, redirect to the detail page
     if (submitted && entity) {
+        console.log('Redirecting...')
         return <Redirect push to={getEntityDetailPath({ entityInfo, entity })} />
     }
 
@@ -64,6 +62,7 @@ export const DefaultAddView = <E extends EntityMinimal>(props: Props<E>) => {
                         <Button type="primary" htmlType="submit" style={{ ...buttonStyle }} key="default-add-button">
                             Add {capitalCase(entityInfo.name)}
                         </Button>
+                        {loading && <Spin />}
                     </Form.Item>
                 </Form>
             </Layout.Content>

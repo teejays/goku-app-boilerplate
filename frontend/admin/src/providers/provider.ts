@@ -1,8 +1,8 @@
-import { AuthContext, AuthContextProps } from 'common/AuthContext'
 import { EntityInfo, EntityInfoCommon, EntityMinimal, UUID } from 'common'
-import React, { useContext, useEffect, useRef, useState } from 'react'
-import axios, { AxiosError, AxiosRequestConfig, ParamsSerializerOptions } from 'axios'
+import axios, { AxiosError, AxiosRequestConfig } from 'axios'
+import { useContext, useEffect, useState } from 'react'
 
+import { AuthContext } from 'common/AuthContext'
 import { config } from 'process'
 import { notification } from 'antd'
 
@@ -39,7 +39,9 @@ export const useAddEntity = <E extends EntityMinimal>(props: HTTPRequestWithEnti
     return useAxiosV2<E, E>({
         method: 'POST',
         path: getEntityPath(entityInfo),
+        skipInitialCall: true,
         config: {
+            ...config,
             data: data,
             notifyOnError: true,
         },
@@ -197,7 +199,7 @@ export const useAxiosV2 = <T = any, D = any>(props: HTTPRequest<D>): readonly [H
                 },
                 ...finalConfig,
             })
-            console.log(result)
+            console.log('useAxios: result', result)
             setData(result.data?.data)
             if (result.data?.error) {
                 const errMsg = result.data?.error
@@ -239,79 +241,4 @@ export const useAxiosV2 = <T = any, D = any>(props: HTTPRequest<D>): readonly [H
     }, [method, path, props.skipInitialCall]) // execute once only
 
     return [{ data, error, loading }, fetch] as const
-}
-
-// export const useHttp = <T = any, D = any>(props: HTTPRequest<D>): readonly [HTTPResponse<T>] => {
-//     const { path, errorCb } = props
-
-//     const { authSession } = useContext<AuthContextProps>(AuthContext)
-
-//     const url = getUrl(path)
-//     const config: AxiosRequestConfig<D> = {
-//         url: url,
-//         headers: props.headers ?? {},
-//         ...props,
-//     }
-//     config.headers!['Access-Control-Allow-Origin'] = '*'
-
-//     // Add auth token
-//     if (authSession?.token) {
-//         config.headers!['Authorization'] = 'Bearer ' + authSession.token
-//     }
-//     console.log(`Making a ${config.method} request`, config)
-
-//     // if (props.induceError) {
-//     //     return { error: props.induceError }
-//     // }
-
-//     // if (props.skip) {
-//     //     return {}
-//     // }
-
-//     const [{ data, loading, error }] = useAxios<T>(config)
-
-//     // if (loading !== resp.loading) {
-//     //     setResp({ ...resp, loading: loading })
-//     // }
-
-//     // Run any error call back
-//     if (error && errorCb) {
-//         errorCb(error.message)
-//         // if (error.message !== resp.error) {
-//         //     setResp({ ...resp, error: error.message })
-//         // }
-//     }
-
-//     // if (data && resp.data !== data) {
-//     //     setResp({ ...resp, data: data })
-//     // }
-
-//     return [{ loading: loading, error: error?.message, data: data }] as const
-// // }
-
-// export const makeUseHttp = <T = any, D = any>(req: HttpRequestInitial) => {
-//     return (props: Omit<HTTPRequest<D>, 'method' | 'path'>): readonly [HTTPResponse<T>] => {
-//         const doUseAxios = makeUseAxios()
-//         const url = getUrl(req.path)
-//         const [{ loading, error, data }] = doUseAxios<T>({
-//             method: req.method,
-//             url: url,
-//             ...props,
-//         })
-//         return [{ loading: loading, error: error?.message, data: data }] as const
-//     }
-// }
-
-function mergeObject(a: any, b: any) {
-    function isValueEmpty(value: any) {
-        return value === '' || value === undefined || value === null
-    }
-
-    return Object.fromEntries(
-        Object.entries(a).map(([key, aValue]): any => {
-            const bValue = b[key]
-
-            return [key, typeof aValue === 'object' ? mergeObject(aValue, bValue) : isValueEmpty(aValue) ? bValue : aValue]
-        })
-    )
 }
