@@ -1,10 +1,10 @@
 import { Button, Card, Result, Spin } from 'antd'
-import { EntityAddLink, EntityInfo, EntityLink, EntityMinimal } from 'common'
-import { ListEntityResponse, useListEntity } from 'providers/provider'
+import { EntityAddLink, EntityInfo, EntityLink, EntityMinimal } from 'goku.static/common'
+import { ListEntityResponse, useListEntity } from 'goku.static/providers/provider'
 import React, { useEffect, useState } from 'react'
 import Table, { ColumnProps } from 'antd/lib/table/'
 
-import { FieldDisplay } from 'components/DisplayAttributes/DisplayAttributes'
+import { FieldDisplay } from 'goku.static/components/DisplayAttributes/DisplayAttributes'
 import { PlusOutlined } from '@ant-design/icons'
 import { capitalCase } from 'change-case'
 

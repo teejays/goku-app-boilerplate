@@ -1,4 +1,4 @@
-import { EntityInfo, EntityInfoCommon, EntityMinimal, EnumInfo, TypeInfo, TypeMinimal } from 'common'
+import { EntityInfo, EntityInfoCommon, EntityMinimal, EnumInfo, TypeInfo, TypeMinimal } from 'goku.static/common'
 
 export interface ServiceInfoCommon {
     name: string
@@ -52,6 +52,6 @@ export class ServiceInfo<E extends EntityMinimal = any, T extends TypeMinimal = 
     }
 
     getEnumInfo<EnumType = any>(name: string): EnumInfo | undefined {
-        return (this.enumInfos[name] as unknown) as EnumInfo<EnumType>
+        return this.enumInfos[name] as unknown as EnumInfo<EnumType>
     }
 }

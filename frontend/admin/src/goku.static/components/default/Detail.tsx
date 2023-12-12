@@ -1,9 +1,9 @@
 import { Card, Result, Spin } from 'antd'
-import { EntityInfo, EntityMinimal, UUID } from 'common'
+import { EntityInfo, EntityMinimal, UUID } from 'goku.static/common'
 import React, { useEffect, useState } from 'react'
 
-import { TypeDisplay } from 'components/DisplayAttributes/DisplayAttributes'
-import { useGetEntity } from 'providers/provider'
+import { TypeDisplay } from 'goku.static/components/DisplayAttributes/DisplayAttributes'
+import { useGetEntity } from 'goku.static/providers/provider'
 
 interface Props<E extends EntityMinimal> {
     entityInfo: EntityInfo<E>

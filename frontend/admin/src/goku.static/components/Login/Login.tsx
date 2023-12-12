@@ -1,9 +1,9 @@
-import { AuthContext, authenticate } from 'common/AuthContext'
+import { AuthContext, authenticate } from 'goku.static/common/AuthContext'
 import { Button, Card, Form, Input, Layout, Result, Spin, notification } from 'antd'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import React, { useContext } from 'react'
 
-import { useAxiosV2 } from 'providers/provider'
+import { useAxiosV2 } from 'goku.static/providers/provider'
 import { useHistory } from 'react-router-dom'
 
 interface AuthenticateRequest {

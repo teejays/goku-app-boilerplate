@@ -1,4 +1,4 @@
-import { EntityInfoCommon, EnumInfo, PrimaryNamespace, ServiceInfoCommon, TypeInfo } from 'common'
+import { EntityInfoCommon, EnumInfo, PrimaryNamespace, ServiceInfoCommon, TypeInfo } from 'goku.static/common'
 import { EntityName, ServiceName } from 'goku.generated/types/types.generated'
 import { TypeInfoCommon, TypeMinimal } from './TypeInfo'
 
@@ -65,7 +65,6 @@ export class AppInfo<ServiceInfoTypes extends ServiceInfoCommon> {
     }
 
     getEntityInfoByNamespace<E extends EntityMinimal = any>(ns: Required<PrimaryNamespace>) {
-
         const serviceName = snakeCase(ns.service)
         const entityName = snakeCase(ns.entity)
 
@@ -107,7 +106,7 @@ export class AppInfo<ServiceInfoTypes extends ServiceInfoCommon> {
         if (!svcInfo) {
             throw new Error(`ServiceInfo not found for service ${serviceName}`)
         }
-        
+
         if (!ns.entity) {
             const typeInfo = svcInfo.getTypeInfo<T>(typeName)
             if (!typeInfo) {
@@ -126,15 +125,14 @@ export class AppInfo<ServiceInfoTypes extends ServiceInfoCommon> {
         if (!typeInfo) {
             throw new Error(`TypeInfo ${typeName} not found in service ${serviceName} and entity ${entityName}`)
         }
-        return typeInfo        
+        return typeInfo
     }
 
     getEnumInfo<EnumType = any>(name: string): EnumInfo | undefined {
-        return (this.enumInfos[name] as unknown) as EnumInfo<EnumType>
+        return this.enumInfos[name] as unknown as EnumInfo<EnumType>
     }
 
-    getEnumInfoByNamespace<EnumType = any>(ns: Namespace): EnumInfo<EnumType>|undefined {
-        
+    getEnumInfoByNamespace<EnumType = any>(ns: Namespace): EnumInfo<EnumType> | undefined {
         if (!ns.enum) {
             throw new Error('getTypeInfoByNamespace() called with empty enum name')
         }

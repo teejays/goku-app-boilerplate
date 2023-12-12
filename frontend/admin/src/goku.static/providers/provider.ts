@@ -1,8 +1,8 @@
-import { EntityInfo, EntityInfoCommon, EntityMinimal, UUID } from 'common'
+import { EntityInfo, EntityInfoCommon, EntityMinimal, UUID } from 'goku.static/common'
 import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 import { useContext, useEffect, useState } from 'react'
 
-import { AuthContext } from 'common/AuthContext'
+import { AuthContext } from 'goku.static/common/AuthContext'
 import { config } from 'process'
 import { notification } from 'antd'
 

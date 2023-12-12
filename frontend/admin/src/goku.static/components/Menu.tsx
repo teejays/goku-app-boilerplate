@@ -1,4 +1,4 @@
-import { AppInfoContext, EntityListLink } from 'common'
+import { AppInfoContext, EntityListLink } from 'goku.static/common'
 import { Menu, Spin } from 'antd'
 import React, { useContext } from 'react'
 

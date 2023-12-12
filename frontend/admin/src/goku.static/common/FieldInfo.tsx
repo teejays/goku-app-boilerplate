@@ -1,8 +1,8 @@
 import { EntityName, ServiceName } from 'goku.generated/types/types.generated'
-import { Namespace, TypeInfoProps } from 'common'
-import { TypeMinimal, TypeProps } from 'common/TypeInfo'
+import { Namespace, TypeInfoProps } from 'goku.static/common'
+import { TypeMinimal, TypeProps } from 'goku.static/common/TypeInfo'
 
-import { FieldKind } from 'common/FieldKind'
+import { FieldKind } from 'goku.static/common/FieldKind'
 
 // FieldInfoProps require both FieldInfo and EntityInfo
 export interface FieldInfoProps<T extends TypeMinimal> extends TypeInfoProps<T> {

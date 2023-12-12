@@ -8,7 +8,7 @@ import {
     StringDisplay,
     TimestampDisplay,
     TypeDisplay,
-} from 'components/DisplayAttributes/DisplayAttributes'
+} from 'goku.static/components/DisplayAttributes/DisplayAttributes'
 import {
     BooleanInput,
     DateInput,
@@ -21,15 +21,15 @@ import {
     TimestampInput,
     TypeFormItems,
     getInputComponentWithRepetition,
-} from 'common/Form'
+} from 'goku.static/common/Form'
 import { Card, Form, Input, Select, Spin } from 'antd'
-import { EntityInfo, FieldInfo, UUID } from 'common'
+import { EntityInfo, FieldInfo, UUID } from 'goku.static/common'
 import { PersonName, PhoneNumber } from 'goku.generated/types/types.generated'
 import React, { useContext } from 'react'
 
-import { AppInfoContext } from 'common/AppInfoContext'
-import { EntityLinkFromID } from 'common/EntityLink'
-import { TypeMinimal } from 'common/TypeInfo'
+import { AppInfoContext } from 'goku.static/common/AppInfoContext'
+import { EntityLinkFromID } from 'goku.static/common/EntityLink'
+import { TypeMinimal } from 'goku.static/common/TypeInfo'
 import { capitalCase } from 'change-case'
 
 // getFieldValue takes an Entity and FieldInfo, and returns the value for the Field

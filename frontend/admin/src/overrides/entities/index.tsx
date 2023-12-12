@@ -1,4 +1,4 @@
-import { AppInfo, ServiceInfoCommon } from 'common'
+import { AppInfo, ServiceInfoCommon } from 'goku.static/common'
 
 import { PersonName } from 'goku.generated/types/types.generated'
 import { User } from 'goku.generated/types/users/user/types.generated'

@@ -1,11 +1,11 @@
-import { AppInfoContext, EntityInfo, EntityLink, EntityLinkFromID, EntityMinimal, FieldInfo, TypeInfo, TypeMinimal, UUID } from 'common'
+import { AppInfoContext, EntityInfo, EntityLink, EntityLinkFromID, EntityMinimal, FieldInfo, TypeInfo, TypeMinimal, UUID } from 'goku.static/common'
 import { Descriptions, Empty, List, Spin } from 'antd'
 import { PersonName, PhoneNumber } from 'goku.generated/types/types.generated'
 import React, { useContext, useEffect, useState } from 'react'
 
 import ReactJson from 'react-json-view'
-import { getValueForField } from 'common/FieldKind'
-import { useGetEntity } from 'providers/provider'
+import { getValueForField } from 'goku.static/common/FieldKind'
+import { useGetEntity } from 'goku.static/providers/provider'
 
 // TypeDisplay component displays a Type
 export interface TypeDisplayProps<T extends TypeMinimal> {

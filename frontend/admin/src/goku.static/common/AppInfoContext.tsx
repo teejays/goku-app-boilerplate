@@ -1,4 +1,4 @@
-import { AppInfo } from 'common'
+import { AppInfo } from 'goku.static/common'
 import React from 'react'
 import { ServiceInfoCommon } from './ServiceInfo'
 

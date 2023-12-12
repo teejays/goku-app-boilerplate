@@ -1,4 +1,4 @@
-import { TypeMinimal, UUID } from 'common'
+import { TypeMinimal, UUID } from 'goku.static/common'
 
 // EntityMinimal represents fields that all Entities should have.
 export interface EntityMinimal extends TypeMinimal {

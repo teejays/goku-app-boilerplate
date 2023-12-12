@@ -1,11 +1,11 @@
 import { Button, Form, Layout, Spin, Typography, notification } from 'antd'
-import { EntityInfo, EntityMinimal, getEntityDetailPath } from 'common'
+import { EntityInfo, EntityMinimal, getEntityDetailPath } from 'goku.static/common'
 import React, { CSSProperties, useState } from 'react'
 
 import { Redirect } from 'react-router-dom'
-import { TypeFormItems } from 'common/Form'
+import { TypeFormItems } from 'goku.static/common/Form'
 import { capitalCase } from 'change-case'
-import { useAddEntity } from 'providers/provider'
+import { useAddEntity } from 'goku.static/providers/provider'
 
 interface Props<E extends EntityMinimal> {
     entityInfo: EntityInfo<E>

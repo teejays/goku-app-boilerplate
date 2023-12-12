@@ -1,11 +1,11 @@
-import { AuthContext, authenticate } from 'common/AuthContext'
+import { AuthContext, authenticate } from 'goku.static/common/AuthContext'
 import { Button, Card, Form, Input, Layout, Select, notification } from 'antd'
 import { LockOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons'
 import { PersonName, PhoneNumber } from 'goku.generated/types/types.generated'
 import React, { useContext } from 'react'
 
-import { Email } from 'common'
-import { useAxiosV2 } from 'providers/provider'
+import { Email } from 'goku.static/common'
+import { useAxiosV2 } from 'goku.static/providers/provider'
 import { useHistory } from 'react-router-dom'
 
 interface RegisterUserRequest {

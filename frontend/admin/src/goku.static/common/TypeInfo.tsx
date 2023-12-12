@@ -1,4 +1,4 @@
-import { FieldInfo } from 'common/FieldInfo'
+import { FieldInfo } from 'goku.static/common/FieldInfo'
 
 export interface TypeInfoProps<T extends TypeMinimal> {
     typeInfo: TypeInfo<T>

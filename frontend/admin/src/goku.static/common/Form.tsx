@@ -1,4 +1,4 @@
-import { AppInfoContext, EntityMinimal, TypeInfo, TypeMinimal } from 'common'
+import { AppInfoContext, EntityMinimal, TypeInfo, TypeMinimal } from 'goku.static/common'
 import { Button, Card, DatePicker, Form, FormItemProps, Input, InputNumber, InputNumberProps, InputProps, Select, Spin, Switch, SwitchProps, TimePicker, TimePickerProps } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { PickerDateProps, PickerTimeProps } from 'antd/lib/date-picker/generatePicker'
@@ -7,7 +7,7 @@ import React, { useContext, useState } from 'react'
 import { FieldFormProps } from './FieldKind'
 import { SizeType } from 'antd/lib/config-provider/SizeContext'
 import { capitalCase } from 'change-case'
-import { useListEntityByTextQuery } from 'providers/provider'
+import { useListEntityByTextQuery } from 'goku.static/providers/provider'
 
 export const combineFormItemName = (parentName: NamePath | undefined, currentName: string | number): NamePath => {
     if (parentName !== undefined) {

@@ -1,4 +1,4 @@
-import { AuthContext, logout } from 'common/AuthContext'
+import { AuthContext, logout } from 'goku.static/common/AuthContext'
 import React, { useContext, useEffect } from 'react'
 
 import { Redirect } from 'react-router-dom'

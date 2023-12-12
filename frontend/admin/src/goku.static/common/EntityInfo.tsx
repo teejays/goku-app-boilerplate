@@ -1,8 +1,8 @@
-import { TypeInfo, TypeInfoCommon, TypeInfoInputProps, TypeMinimal } from 'common/TypeInfo'
+import { TypeInfo, TypeInfoCommon, TypeInfoInputProps, TypeMinimal } from 'goku.static/common/TypeInfo'
 
-import { EntityMinimal } from 'common/Entity'
+import { EntityMinimal } from 'goku.static/common/Entity'
 import { EnumInfo } from './EnumInfo'
-import { FieldInfo } from 'common/FieldInfo'
+import { FieldInfo } from 'goku.static/common/FieldInfo'
 import { capitalCase } from 'change-case'
 
 /* * * * * * * * * * * * * *
@@ -80,14 +80,13 @@ export class EntityInfo<E extends EntityMinimal = any> extends TypeInfo<E> imple
         this.columnsFieldsForListView = ['id', 'created_at', 'updated_at']
         this.typeInfo = new TypeInfo(props)
 
-        props.typeInfos?.forEach(typeInfo => {
+        props.typeInfos?.forEach((typeInfo) => {
             this.typeInfos[typeInfo.name] = typeInfo
-        });
+        })
 
-        props.enumInfos?.forEach(enumInfo => {
+        props.enumInfos?.forEach((enumInfo) => {
             this.enumInfos[enumInfo.name] = enumInfo
-        });
-
+        })
     }
 
     // 2. Basic props/methods - which are shared by all and need not be overridden.
@@ -143,10 +142,10 @@ export class EntityInfo<E extends EntityMinimal = any> extends TypeInfo<E> imple
         if (name == this.name) {
             return this.typeInfo as unknown as TypeInfo<T>
         }
-        return (this.typeInfos[name] as unknown) as TypeInfo<T>
+        return this.typeInfos[name] as unknown as TypeInfo<T>
     }
 
     getEnumInfo<EnumType = any>(name: string): EnumInfo<EnumType> | undefined {
-        return (this.enumInfos[name] as unknown) as EnumInfo<EnumType>
+        return this.enumInfos[name] as unknown as EnumInfo<EnumType>
     }
 }

@@ -1,12 +1,12 @@
 import { Alert, Spin } from 'antd'
 import { EntityInfo, EntityInfoCommon } from './EntityInfo'
-import { EntityInfoCommonV2, EntityMinimal, EntityProps, TypeInfoCommon } from 'common'
+import { EntityInfoCommonV2, EntityMinimal, EntityProps, TypeInfoCommon } from 'goku.static/common'
 import React, { useEffect, useState } from 'react'
 
 import { Link } from 'react-router-dom'
 import { UUID } from './Primitives'
 import { capitalCase } from 'change-case'
-import { useGetEntity } from 'providers/provider'
+import { useGetEntity } from 'goku.static/providers/provider'
 
 interface EntityLinkProps<E extends EntityMinimal> {
     entity: E
