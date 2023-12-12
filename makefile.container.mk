@@ -58,7 +58,7 @@ connect-db:
 # Always run the command from /go-goku, because that would be more consistent with with go workspace calls (for development)
 
 GO=go
-CMD_BACKEND_BUILD=$(GO) build -o ${APP_BIN_DIR}/app $(APP_ROOT_DIR)/backend/main.go
+CMD_BACKEND_BUILD=$(GO) build -o ${APP_BIN_DIR}/app $(APP_ROOT_DIR)/backend/cmd/goku.static/monoservice/main.go
 CMD_BACKEND_RUN=GOKU_APP_PATH=$(APP_ROOT_DIR) ${APP_BIN_DIR}/app
 
 backend-go-mod:
