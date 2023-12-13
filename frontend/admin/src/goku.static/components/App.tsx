@@ -1,11 +1,14 @@
 import * as global from 'goku.generated/types/types.generated'
-import { AppInfoContext, EntityInfo, EntityMinimal, ServiceInfoContext } from 'goku.static/common'
+
+import { AppInfoContext, EntityInfo, EntityMinimal, ServiceInfoCommon, ServiceInfoContext, ServiceInfoT } from 'goku.static/common'
 import { AuthContext, AuthSession, authenticate, isAuthenticated } from 'goku.static/common/AuthContext'
 import { BrowserRouter, Route, Switch, useParams } from 'react-router-dom'
 import { DefaultAddView, DefaultDetailView, DefaultListView } from 'goku.static/components/default'
 import { Layout, Spin } from 'antd'
 import React, { useContext, useEffect, useState } from 'react'
+
 import { AppHeader } from 'goku.static/components/AppHeader'
+import { DefaultEditView } from './default/Edit'
 import { LoginPage } from 'goku.static/components/Login/Login'
 import { LogoutPage } from 'goku.static/components/Logout/Logout'
 import { MenuWrapper } from 'goku.static/components/Menu'
@@ -171,10 +174,6 @@ const EntityRoutes: (props: EntityRoutesProps) => JSX.Element = (props) => {
         return <Spin />
     }
 
-    // if (!entityInfo) {
-    //     return <p>{`Entity '${entityName}' not recognized for service '${serviceInfo.name}'`}</p>
-    // }
-
     return (
         <Switch>
             {/* Add Entity */}
@@ -185,23 +184,32 @@ const EntityRoutes: (props: EntityRoutesProps) => JSX.Element = (props) => {
             <Route path={'/' + serviceInfo.name + '/' + entityInfo.name + '/list'}>
                 <DefaultListView entityInfo={entityInfo} />
             </Route>
-            {/* Detail View */}
+            {/* Detail + Edit View */}
             <Route path={'/' + serviceInfo.name + '/' + entityInfo.name + '/:id'}>
-                <EntityDetailRoute entityInfo={entityInfo} />
+                <EntityInstanceRoutes entityInfo={entityInfo} serviceInfo={serviceInfo} />
             </Route>
-            {/* TODO: Edit View */}
-            {/*
-            <Route path={'/' + serviceInfo.name + '/' + entityInfo.name + '/:id/edit'}>
-                <EntityEditRoute entityInfo={entityInfo} />
-            </Route>
-            */}
         </Switch>
     )
 }
 
-const EntityDetailRoute = <E extends EntityMinimal>(props: { entityInfo: EntityInfo<E> }) => {
+// EntityInstanceRoutes are routes associated with a particular instance of an entity
+const EntityInstanceRoutes = <E extends EntityMinimal>(props: { entityInfo: EntityInfo<E>; serviceInfo: ServiceInfoCommon }) => {
+    const { entityInfo, serviceInfo } = props
     const { id } = useParams<{ id: string }>()
-    return <DefaultDetailView entityInfo={props.entityInfo} objectId={id} />
+    if (!serviceInfo || !entityInfo) {
+        return <Spin />
+    }
+
+    return (
+        <Switch>
+            <Route path={'/' + serviceInfo.name + '/' + entityInfo.name + '/' + id + '/edit'}>
+                <DefaultEditView entityInfo={entityInfo} objectId={id} />
+            </Route>
+            <Route path={'/' + serviceInfo.name + '/' + entityInfo.name + '/' + id}>
+                <DefaultDetailView entityInfo={entityInfo} objectId={id} />
+            </Route>
+        </Switch>
+    )
 }
 
 const Home = () => {

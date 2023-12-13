@@ -10,8 +10,13 @@ const getBaseURL = (): string => {
     return `http://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/v1/`
 }
 
-const getEntityPath = (entityInfo: EntityInfoCommon): string => {
-    return entityInfo.serviceName + '/' + entityInfo.name
+const getEntityPath = (props: { entityInfo: EntityInfoCommon; entityId?: string }): string => {
+    const { entityInfo, entityId } = props
+    let path = entityInfo.serviceName + '/' + entityInfo.name
+    if (entityId) {
+        path = path + '/' + entityId
+    }
+    return path
 }
 
 const getUrl = (path: string): string => {
@@ -20,9 +25,10 @@ const getUrl = (path: string): string => {
 
 export interface HTTPRequestWithEntityInfo<E extends EntityMinimal, P = never, D = never> {
     entityInfo: EntityInfo<E>
-    params?: P
-    data?: D
+    params?: P // these are form/url params
+    data?: D // this is body data
     config?: Partial<Omit<HTTPRequestFetchConfig<D>, 'data' | 'params'>> // because params field in here is of any type, data field: we just want it outside
+    skip?: boolean // should we skip this for now. Useful when we are not ready to construct the call
 }
 
 export interface AddEntityRequest<E extends EntityMinimal> {
@@ -38,8 +44,36 @@ export const useAddEntity = <E extends EntityMinimal>(props: HTTPRequestWithEnti
 
     return useAxiosV2<E, E>({
         method: 'POST',
-        path: getEntityPath(entityInfo),
+        path: getEntityPath({ entityInfo: entityInfo }),
         skipInitialCall: true,
+        config: {
+            ...config,
+            data: data,
+            notifyOnError: true,
+        },
+    })
+}
+
+export interface UpdateEntityRequest<E extends EntityMinimal, FieldEnum> {
+    object: E
+    fields?: FieldEnum[]
+    exclude_fields?: FieldEnum[]
+}
+
+export const useUpdateEntity = <E extends EntityMinimal, FieldEnum>(
+    props: HTTPRequestWithEntityInfo<E, never, UpdateEntityRequest<E, FieldEnum>>
+): readonly [HTTPResponse<E>, FetchFunc<UpdateEntityRequest<E, FieldEnum>>] => {
+    const { entityInfo, data, config } = props
+
+    console.log('Update Entity: ' + entityInfo.name)
+
+    // fetch data from a url endpoint
+
+    return useAxiosV2<E, UpdateEntityRequest<E, FieldEnum>>({
+        method: 'PUT',
+        path: getEntityPath({ entityInfo: entityInfo, entityId: data?.object?.id }),
+        skipInitialCall: true,
+        skip: true,
         config: {
             ...config,
             data: data,
@@ -60,7 +94,7 @@ export const useGetEntity = <E extends EntityMinimal = any>(props: HTTPRequestWi
     // fetch data from a url endpoint
     return useAxiosV2<E>({
         method: 'GET',
-        path: getEntityPath(entityInfo),
+        path: getEntityPath({ entityInfo: entityInfo }),
         config: {
             params: { req: params },
             notifyOnError: true,
@@ -88,8 +122,7 @@ export const useListEntity = <E extends EntityMinimal>(
     // fetch data from a url endpoint
     return useAxiosV2<ListEntityResponse<E>>({
         method: 'GET',
-        path: getEntityPath(entityInfo) + `/list`,
-
+        path: getEntityPath({ entityInfo: entityInfo }) + `/list`,
         config: {
             ...config,
             params: params, // can include any filters here
@@ -112,7 +145,7 @@ export const useListEntityByTextQuery = <E extends EntityMinimal = any>(
     // fetch data from a url endpoint
     return useAxiosV2({
         method: 'GET',
-        path: getEntityPath(entityInfo) + `/query_by_text`,
+        path: getEntityPath({ entityInfo: entityInfo }) + `/query_by_text`,
         config: {
             ...config,
             params: params,
@@ -125,10 +158,11 @@ export const useListEntityByTextQuery = <E extends EntityMinimal = any>(
 
 // Options, ONLY allowed during the initial phase
 export interface HTTPRequestInitConfig<D = any> {
-    method: 'GET' | 'POST'
+    method: 'GET' | 'POST' | 'PUT'
     path: string
     // If set to true, do not make a call, and simply return empty data
     skipInitialCall?: boolean
+    skip?: boolean // don't do anything
 }
 
 // Options used during fetch phase.
@@ -162,7 +196,7 @@ export const useAxiosV2 = <T = any, D = any>(props: HTTPRequest<D>): readonly [H
 
     console.log('useAxios: Setting up HTTP call with props', props)
 
-    const [data, setData] = useState<T>()
+    const [data, setData] = useState<T>() // response body
     const [error, setError] = useState<string>()
     const [loading, setLoading] = useState<boolean>()
 

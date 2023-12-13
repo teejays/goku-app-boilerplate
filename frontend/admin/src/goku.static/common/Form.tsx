@@ -24,21 +24,24 @@ type NamePath = string | number | (string | number)[]
 interface TypeFormItemsProps<T extends TypeMinimal> {
     typeInfo: TypeInfo<T>
     parentItemName?: NamePath
-    formItemProps?: Partial<FormItemProps> // antd's props
+    formItemProps?: Partial<FormItemProps<T>> // antd's props
     noLabels?: boolean
     usePlaceholders?: boolean
 }
 
+// TypeFormItems renders a form given a TypeInfo
 export const TypeFormItems = <T extends TypeMinimal>(props: TypeFormItemsProps<T>) => {
     const { typeInfo, parentItemName, formItemProps } = props
+
+    const initialValue = formItemProps?.initialValue
+    const initialValueFields = Object.keys(initialValue ?? {})
+    const initialValueValues = Object.values(initialValue ?? {})
+    console.log('Type Form Items: ', typeInfo.name, initialValue, initialValueFields, initialValueValues)
 
     // Filter to remove the fields that we don't want to show in an Add form
     // Do not create form input for meta fields like ID, created_at etc.
     const filteredFieldInfos = typeInfo.fieldInfos.filter((fieldInfo) => {
-        if (fieldInfo.isMetaField) {
-            return false
-        }
-        return true
+        return !fieldInfo.isMetaField
     })
 
     // Create a list of all the form items by looping over all applicable fieldInfo
@@ -48,8 +51,17 @@ export const TypeFormItems = <T extends TypeMinimal>(props: TypeFormItemsProps<T
         const fieldKind = fieldInfo.kind
         const label = fieldKind.getLabel(fieldInfo)
         const labelString = fieldKind.getLabelString(fieldInfo)
+        const initialValue = initialValueValues[initialValueFields.indexOf(fieldInfo.name)]
+        console.log('Rendering input form for', name, 'field index', initialValueFields.indexOf(fieldInfo.name))
 
-        const finalFormItemProps = { ...formItemProps, ...{ label: props.noLabels ? undefined : label, name: name } }
+        const finalFormItemProps: Partial<FormItemProps> = {
+            ...formItemProps,
+            ...{
+                label: props.noLabels ? undefined : label,
+                name: name,
+                initialValue: initialValue,
+            },
+        }
         const sharedInputProps: LocalSharedInputProps = {
             placeholder: props.usePlaceholders ? labelString : undefined,
             size: 'small',
