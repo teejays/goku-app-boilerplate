@@ -5,7 +5,7 @@ export interface ServiceInfoCommon {
     defaultIcon?: React.ElementType
     getEntityInfo<E extends EntityMinimal>(name: string): EntityInfo<E>
     entityInfos: EntityInfoCommon[]
-    getTypeInfo<T>(name: string): TypeInfo<T>
+    getTypeInfo<T extends TypeMinimal>(name: string): TypeInfo<T>
     getEnumInfo<EnumType = any>(name: string): EnumInfo | undefined
 }
 

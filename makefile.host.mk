@@ -35,7 +35,7 @@ GOKU_BIN_NAME=goku.${DOCKER_GO_OS_ARCH}.latest
 DOCKER_UP_VARS=APP_NAME=${APP_NAME} GOKU_BIN_DIR=${GOKU_BIN_DIR} GOKU_BIN_NAME=${GOKU_BIN_NAME} GOGOKU_ROOT_DIR=${GOGOKU_ROOT_DIR} CONTAINER_APP_ROOT_DIR=${CONTAINER_APP_ROOT_DIR} CONTAINER_MAKE_FILE_NAME=${CONTAINER_MAKE_FILE_NAME}
 
 # Group commands: do more than one thing at once
-all: docker-builder-goku-generate docker-builder-db-migrate
+all: docker-database-up docker-builder-goku-generate docker-builder-db-migrate docker-up
 
 # Docker General Commands
 
@@ -85,6 +85,8 @@ docker-database-stop:
 
 # Backend
 
+docker-backend: docker-backend-build docker-backend-run
+
 docker-backend-build:
 	${DOCKER_UP_VARS} docker compose run --name goku_${APP_NAME:?err}_backend --rm backend ${CONTAINER_MAKE} backend-build
 
@@ -106,19 +108,19 @@ docker-backend-stop:
 
 # Frontend
 
-docker-frontend-admin-install: docker-up-frontend
-	${DOCKER_UP_VARS} docker compose exec -it frontend ${CONTAINER_MAKE} frontend-admin-install
+docker-frontend-admin-install:
+	${DOCKER_UP_VARS} docker compose run --rm frontend ${CONTAINER_MAKE} frontend-admin-install
 
 docker-frontend-admin-run:
-	${DOCKER_UP_VARS} docker compose exec -it frontend ${CONTAINER_MAKE} frontend-admin-run
+	${DOCKER_UP_VARS} docker compose run --rm frontend ${CONTAINER_MAKE} frontend-admin-run
 
 docker-frontend-admin-run-bg:
-	${DOCKER_UP_VARS} docker compose exec -it -d frontend ${CONTAINER_MAKE} frontend-admin-run
+	${DOCKER_UP_VARS} docker compose run --rm -d frontend ${CONTAINER_MAKE} frontend-admin-run
 
 docker-frontend-logs:
 	${DOCKER_UP_VARS} docker compose logs -f frontend
 
-docker-frontend-conect: docker-up-frontend
+docker-frontend-conect: docker-frontend-up
 	${DOCKER_UP_VARS} docker compose exec -it frontend /bin/sh
 
 docker-frontend-up:

@@ -19,7 +19,7 @@ GOKU_BINARY_NAME=goku.$(GOOS)_$(GOARCH).latest
 
 # DIRs
 CURRENT_DIR ?= $(shell pwd)
-APP_NAME ?= $(shell basename ${CURRENT_DIR})
+APP_NAME ?=
 
 GOGOKU_ROOT_DIR ?= /go-goku
 APP_ROOT_DIR ?= ${GOGOKU_ROOT_DIR}/${APP_NAME}
@@ -88,8 +88,8 @@ backend: backend-build backend-run
 # Frontend
 # # # # # # # # #
 
-CMD_FRONTEND_ADMIN_INSTALL=yarn workspace admin install
-CMD_FRONTEND_ADMIN_RUN=yarn workspace admin start
+CMD_FRONTEND_ADMIN_INSTALL=yarn --cwd=${APP_ROOT_DIR} workspace admin install
+CMD_FRONTEND_ADMIN_RUN=yarn --cwd=${APP_ROOT_DIR} workspace admin start
 
 frontend-admin-install:
 	${CMD_FRONTEND_ADMIN_INSTALL}

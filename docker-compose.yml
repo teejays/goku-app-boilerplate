@@ -29,6 +29,7 @@ services:
             - common-network
         working_dir: /go-goku
         environment:
+            - APP_NAME=${APP_NAME:?err}
             - POSTGRES_PASSWORD=postgres
             - POSTGRES_USERNAME=postgres
             - PGPASSWORD=postgres
@@ -51,14 +52,14 @@ services:
             # Copy workspace dev stuff. Only needed during Goku development. Comment these out for app development!
             - '${GOGOKU_ROOT_DIR:?err}/goku-util:/go-goku/goku-util'
         environment:
+            - APP_NAME=${APP_NAME:?err}
             - POSTGRES_PASSWORD=postgres
             - POSTGRES_USERNAME=postgres
             - PGPASSWORD=postgres
             - DATABASE_HOST=database
-            - APP_NAME=${APP_NAME}
             - GOKU_DEV=${GOKU_DEV} # Pass it as env variable so app build can use local packages
         working_dir: /go-goku
-        command: ['make', '-C', '${CONTAINER_APP_ROOT_DIR:?err}', '-f', '${CONTAINER_MAKE_FILE_NAME:?err}', 'backend'] # For pure app development
+        command: ['make', '-f', '${CONTAINER_APP_ROOT_DIR:?err}/${CONTAINER_MAKE_FILE_NAME:?err}', 'backend'] # For pure app development
 
     # Runs the frontend app
     frontend:
@@ -74,6 +75,7 @@ services:
         ports:
             - 3000:3000
         environment:
+            - APP_NAME=${APP_NAME:?err}
             - REACT_APP_BACKEND_HOST=localhost
             - REACT_APP_BACKEND_PORT=8080
             - HOST=0.0.0.0 # Post for the frontend to run
@@ -82,7 +84,7 @@ services:
         volumes:
             - './:${CONTAINER_APP_ROOT_DIR:?err}'
         working_dir: /go-goku
-        command: [sh, -c, 'make -C ${CONTAINER_APP_ROOT_DIR:?err} -f ${CONTAINER_MAKE_FILE_NAME:?err} frontend-admin-run']
+        command: [sh, -c, 'make -f ${CONTAINER_APP_ROOT_DIR:?err}/${CONTAINER_MAKE_FILE_NAME:?err} frontend-admin-run']
 
 networks:
     common-network:
