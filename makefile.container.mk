@@ -30,12 +30,13 @@ GOKU_BIN_DIR = ${GOGOKU_ROOT_DIR}/goku/bin
 # APP_BIN_DIR is the dir in the container where app binary will be put
 APP_BIN_DIR ?= ${APP_ROOT_DIR}/bin
 
+all: goku-generate db-migrate
 # # # # # # # # #
 # Goku Generation
 # # # # # # # # #
 goku-generate: goku-clean
 	@echo "$(YELLOW)Running Goku...$(RESET)"
-	${GOKU_BIN_DIR}/$(GOKU_BINARY_NAME) generate
+	cd ${APP_ROOT_DIR} && ${GOKU_BIN_DIR}/$(GOKU_BINARY_NAME) generate && cd ${CURRENT_DIR}
 
 
 # # # # # # # # #
@@ -69,16 +70,12 @@ backend-build: backend-go-mod backend-go-work-init
 	${CMD_BACKEND_BUILD}
 
 backend-go-work-init:
-	rm -f ${APP_ROOT_DIR}/go.work ${APP_ROOT_DIR}/go.work.sum
-	cd ${APP_ROOT_DIR} && \
+	rm -f go.work go.work.sum
 	go work init && \
-	go work use ./backend && \
-	cd ${CURRENT_DIR}
+	go work use ${APP_ROOT_DIR}/backend
 ifeq ($(GOKU_DEV),TRUE)
-	cd ${APP_ROOT_DIR} && \
 	go work use ${GOGOKU_ROOT_DIR}/goku-util && \
-	go work use ${GOGOKU_ROOT_DIR}/goku-util/gopi && \
-	cd ${CURRENT_DIR}
+	go work use ${GOGOKU_ROOT_DIR}/goku-util/gopi
 endif
 
 backend-run:
@@ -108,7 +105,7 @@ frontend-admin-run: frontend-admin-install
 DB_USER=${USER}
 dbs-create:
 	@echo "$(YELLOW)Creating databases (if needed)...$(RESET)"
-	@xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -I{} ./scripts/db_create.sh {}
+	@xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -I{} $(APP_ROOT_DIR)/scripts/db_create.sh {}
 
 # - Database: Generate migration SQL scripts
 CMD_RM_MIGRATION=rm -rf $(APP_ROOT_DIR)/db/migration/future/*
@@ -148,7 +145,7 @@ db-migration-clean:
 # Test Database
 
 # - Test Database: Create a test database for each service, named <service>_test
-CMD_CREATE_TEST_DB=./scripts/db_create.sh {}_test
+CMD_CREATE_TEST_DB=$(APP_ROOT_DIR)/scripts/db_create.sh {}_test
 dbs-test-create:
 	DB_USER=${DB_USER} \
 	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -n 1 -I{} $(CMD_CREATE_TEST_DB) 

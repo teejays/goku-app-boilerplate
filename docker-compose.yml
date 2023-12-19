@@ -1,88 +1,88 @@
 services:
-  # Use this to build the app using the stable version of Goku
-  builder:
-    container_name: goku_${APP_NAME:?err}_builder
-    image: iamteejay/goku:app_builder_latest
-    volumes:
-      - "./:${CONTAINER_APP_ROOT_DIR}"
-      # Copy the goku binary, so we can use it to run the generator
-      - "${GOKU_BIN_DIR:?err}/${GOKU_BIN_NAME:?err}:/go-goku/goku/bin/${GOKU_BIN_NAME:?err}"
-    working_dir: /go-goku
-    environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USERNAME=postgres
-      - PGPASSWORD=postgres
-      - DATABASE_HOST=database
-    networks:
-      - common-network
-    entrypoint: ["tail", "-f", "/dev/null"]
+    # Use this to build the app using the stable version of Goku
+    builder:
+        container_name: goku_${APP_NAME:?err}_builder
+        image: iamteejay/goku:app_builder_latest
+        depends_on:
+            - database # can only run migrations once database is up
+        volumes:
+            - './:${CONTAINER_APP_ROOT_DIR}'
+            # Copy the goku binary, so we can use it to run the generator
+            - '${GOKU_BIN_DIR:?err}/${GOKU_BIN_NAME:?err}:/go-goku/goku/bin/${GOKU_BIN_NAME:?err}'
+        working_dir: /go-goku
+        environment:
+            - APP_NAME=${APP_NAME:?err}
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_USERNAME=postgres
+            - PGPASSWORD=postgres
+            - DATABASE_HOST=database
+        networks:
+            - common-network
 
-  # Runs the database
-  database:
-    container_name: goku_${APP_NAME:?err}_database
-    image: postgres:alpine3.15
-    depends_on:
-      - builder
-    ports:
-      - 5432:5432
-    networks:
-      - common-network
-    working_dir: /go-goku
-    environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USERNAME=postgres
-      - PGPASSWORD=postgres
-    command: ["postgres"]
-  
-  # Runs the backend
-  backend:
-    container_name: goku_${APP_NAME:?err}_backend
-    image: golang:1.18.3
-    depends_on:
-      - builder
-      - database
-    ports:
-      - 8080:8080 # Rest API
-      - 8081:8081 # Gateway (Graphql)
-    networks:
-      - common-network
-    volumes:
-      - "./:${CONTAINER_APP_ROOT_DIR:?err}"
-      # Copy workspace dev stuff. Only needed during Goku development. Comment these out for app development!
-      - "${GOGOKU_ROOT_DIR:?err}/goku-util:/go-goku/goku-util"
-    environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USERNAME=postgres
-      - PGPASSWORD=postgres
-      - DATABASE_HOST=database
-      - APP_NAME=${APP_NAME}
-      - GOKU_DEV=${GOKU_DEV} # Pass it as env variable so app build can use local packages
-    working_dir: /go-goku
-    command: ["make", "-C", "${CONTAINER_APP_ROOT_DIR:?err}", "-f", "${CONTAINER_MAKE_FILE_NAME:?err}", "backend"] # For pure app development
+    # Runs the database
+    database:
+        container_name: goku_${APP_NAME:?err}_database
+        image: postgres:alpine3.15
+        ports:
+            - 5432:5432
+        networks:
+            - common-network
+        working_dir: /go-goku
+        environment:
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_USERNAME=postgres
+            - PGPASSWORD=postgres
+        command: ['postgres']
 
-  # Runs the frontend app
-  frontend:
-    container_name: goku_${APP_NAME:?err}_frontend
-    # image: iamteejay/goku:app_frontend_latest
-    build:
-      context: frontend
-      dockerfile: Dockerfile.frontend
-    depends_on:
-      - builder
-      - database
-      - backend
-    ports:
-      - 3000:3000
-    environment:
-      - REACT_APP_BACKEND_HOST=localhost
-      - REACT_APP_BACKEND_PORT=8080
-      - HOST=0.0.0.0 # Post for the frontend to run
-    networks:
-      - common-network
-    volumes:
-      - "./:${CONTAINER_APP_ROOT_DIR:?err}"
-    working_dir: /go-goku
-    command: [sh, -c, "make -C ${CONTAINER_APP_ROOT_DIR:?err} -f ${CONTAINER_MAKE_FILE_NAME:?err} frontend-admin-run"]
+    # Runs the backend
+    backend:
+        container_name: goku_${APP_NAME:?err}_backend
+        image: iamteejay/goku:golang_latest
+        depends_on:
+            - builder
+            - database
+        ports:
+            - 8080:8080 # Rest API
+            - 8081:8081 # Gateway (Graphql)
+        networks:
+            - common-network
+        volumes:
+            - './:${CONTAINER_APP_ROOT_DIR:?err}'
+            # Copy workspace dev stuff. Only needed during Goku development. Comment these out for app development!
+            - '${GOGOKU_ROOT_DIR:?err}/goku-util:/go-goku/goku-util'
+        environment:
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_USERNAME=postgres
+            - PGPASSWORD=postgres
+            - DATABASE_HOST=database
+            - APP_NAME=${APP_NAME}
+            - GOKU_DEV=${GOKU_DEV} # Pass it as env variable so app build can use local packages
+        working_dir: /go-goku
+        command: ['make', '-C', '${CONTAINER_APP_ROOT_DIR:?err}', '-f', '${CONTAINER_MAKE_FILE_NAME:?err}', 'backend'] # For pure app development
+
+    # Runs the frontend app
+    frontend:
+        container_name: goku_${APP_NAME:?err}_frontend
+        # image: iamteejay/goku:app_frontend_latest
+        build:
+            context: frontend
+            dockerfile: Dockerfile.frontend
+        depends_on:
+            - builder
+            - database
+            - backend
+        ports:
+            - 3000:3000
+        environment:
+            - REACT_APP_BACKEND_HOST=localhost
+            - REACT_APP_BACKEND_PORT=8080
+            - HOST=0.0.0.0 # Post for the frontend to run
+        networks:
+            - common-network
+        volumes:
+            - './:${CONTAINER_APP_ROOT_DIR:?err}'
+        working_dir: /go-goku
+        command: [sh, -c, 'make -C ${CONTAINER_APP_ROOT_DIR:?err} -f ${CONTAINER_MAKE_FILE_NAME:?err} frontend-admin-run']
 
 networks:
-  common-network:
+    common-network:

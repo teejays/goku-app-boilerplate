@@ -11,7 +11,7 @@ WHITE=\033[37;1m
 
 # DIRs
 CURRENT_DIR=$(shell pwd)
-APP_NAME=$(shell basename ${CURRENT_DIR})
+APP_NAME?=$(shell basename ${CURRENT_DIR})
 
 # GOGOKU_ROOT_DIR is the root directory of go-goku on the host machine.
 # This is needed for us to copy/mount and use the local code for external packages.our builder to able to run goku binary.
@@ -26,7 +26,7 @@ CONTAINER_GOGOKU_ROOT_DIR = /go-goku
 CONTAINER_APP_ROOT_DIR = ${CONTAINER_GOGOKU_ROOT_DIR}/${APP_NAME}
 # CONTAINER_MAKE command that references the makefile to use within the container
 CONTAINER_MAKE_FILE_NAME = makefile.container.mk
-CONTAINER_MAKE=make -C ${CONTAINER_APP_ROOT_DIR} -f ${CONTAINER_MAKE_FILE_NAME}
+CONTAINER_MAKE=make -f ${CONTAINER_APP_ROOT_DIR}/${CONTAINER_MAKE_FILE_NAME}
 
 DOCKER_GO_OS_ARCH=linux_amd64
 GOKU_BIN_NAME=goku.${DOCKER_GO_OS_ARCH}.latest
@@ -35,16 +35,12 @@ GOKU_BIN_NAME=goku.${DOCKER_GO_OS_ARCH}.latest
 DOCKER_UP_VARS=APP_NAME=${APP_NAME} GOKU_BIN_DIR=${GOKU_BIN_DIR} GOKU_BIN_NAME=${GOKU_BIN_NAME} GOGOKU_ROOT_DIR=${GOGOKU_ROOT_DIR} CONTAINER_APP_ROOT_DIR=${CONTAINER_APP_ROOT_DIR} CONTAINER_MAKE_FILE_NAME=${CONTAINER_MAKE_FILE_NAME}
 
 # Group commands: do more than one thing at once
-all: docker-all
-
-stop: docker-stop
-
-reset: docker-reset
-
-destroy: docker-destroy
+all: docker-builder-goku-generate docker-builder-db-migrate
 
 # Docker General Commands
-docker-all: docker-builder-up docker-database-up docker-builder-goku-generate docker-builder-db-migrate docker-backend-up docker-frontend-up docker-logs
+
+docker-up:
+	${DOCKER_UP_VARS} docker compose up --build --remove-orphans
 
 docker-logs:
 	${DOCKER_UP_VARS} docker compose logs -f
@@ -52,81 +48,61 @@ docker-logs:
 docker-stop:
 	${DOCKER_UP_VARS} docker compose stop
 
-docker-reset: docker-stop docker-all
-
-docker-destroy: docker-stop
+docker-destroy:
 	${DOCKER_UP_VARS} docker compose rm --force --stop --volumes
-
-
-# Docker Setup
 
 docker-status: 
 	${DOCKER_UP_VARS} docker compose ps
 
-docker-builder-up:
-	${DOCKER_UP_VARS} docker compose up --build -d --remove-orphans builder
 
-docker-database-up:
-	${DOCKER_UP_VARS} docker compose up --build -d --remove-orphans database
+# Builder
 
-docker-backend-up:
-	${DOCKER_UP_VARS} docker compose up --build -d --remove-orphans backend
+docker-builder-goku-generate:
+	${DOCKER_UP_VARS} docker compose run -it --rm builder ${CONTAINER_MAKE} goku-generate
 
-docker-frontend-up:
-	${DOCKER_UP_VARS} docker compose up --build -d --remove-orphans frontend
-
-
-# Goku Generation / Builder
-
-docker-builder-stop:
-	${DOCKER_UP_VARS} docker compose stop builder
-
-docker-builder-restart:
-	${DOCKER_UP_VARS} docker compose restart builder
-
-
-docker-builder-goku-generate: docker-builder-up
-	${DOCKER_UP_VARS} docker compose exec -it builder ${CONTAINER_MAKE} goku-generate
+docker-builder-db-migrate: 
+	${DOCKER_UP_VARS} docker compose run --name goku_${APP_NAME:?err}_builder --rm builder ${CONTAINER_MAKE} db-migrate
 
 
 docker-builder-connect:
-	${DOCKER_UP_VARS} docker compose exec -it builder /bin/bash
-
-# Migration
-
-docker-builder-db-migrate: docker-builder-up 
-	${DOCKER_UP_VARS} docker compose exec builder ${CONTAINER_MAKE} db-migrate
+	${DOCKER_UP_VARS} docker compose run -it --rm builder /bin/bash
 
 
 # Database 
-
-docker-database-run: docker-database-up
 
 docker-database-logs:
 	${DOCKER_UP_VARS} docker compose logs -f database
 
 docker-database-connect:
-	${DOCKER_UP_VARS} docker compose exec builder ${CONTAINER_MAKE} connect-db
+	${DOCKER_UP_VARS} docker compose run --rm --service-ports builder ${CONTAINER_MAKE} connect-db
+
+docker-database-up:
+	${DOCKER_UP_VARS} docker compose up -d --build --remove-orphans database
+
+docker-database-stop:
+	${DOCKER_UP_VARS} docker compose stop database
+
 
 # Backend
 
-docker-backend-build: docker-builder-up
-	${DOCKER_UP_VARS} docker compose exec backend ${CONTAINER_MAKE} backend-build
+docker-backend-build:
+	${DOCKER_UP_VARS} docker compose run --name goku_${APP_NAME:?err}_backend --rm backend ${CONTAINER_MAKE} backend-build
 
-docker-backend-run: docker-database-up docker-backend-up
-	${DOCKER_UP_VARS} docker compose exec backend ${CONTAINER_MAKE} backend-run
+docker-backend-run:
+	${DOCKER_UP_VARS} docker compose run --name goku_${APP_NAME:?err}_backend --rm --service-ports backend ${CONTAINER_MAKE} backend-run
 
 docker-backend-logs:
 	${DOCKER_UP_VARS} docker compose logs -f backend
 
 docker-backend-connect:
-	${DOCKER_UP_VARS} docker compose exec -it backend /bin/bash
+	${DOCKER_UP_VARS} docker compose run --name goku_${APP_NAME:?err}_backend --rm backend /bin/bash
+
+docker-backend-up:
+	${DOCKER_UP_VARS} docker compose up --build --remove-orphans backend
 
 docker-backend-stop:
 	${DOCKER_UP_VARS} docker compose stop backend
 
-docker-backend-restart:
-	${DOCKER_UP_VARS} docker compose restart backend
 
 # Frontend
 
@@ -145,5 +121,8 @@ docker-frontend-logs:
 docker-frontend-conect: docker-up-frontend
 	${DOCKER_UP_VARS} docker compose exec -it frontend /bin/sh
 
-docker-frontend-restart:
-	${DOCKER_UP_VARS} docker compose restart frontend
+docker-frontend-up:
+	${DOCKER_UP_VARS} docker compose up --build --remove-orphans frontend
+
+docker-frontend-stop:
+	${DOCKER_UP_VARS} docker compose stop frontend
