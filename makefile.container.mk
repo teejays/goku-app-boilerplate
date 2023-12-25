@@ -43,7 +43,7 @@ goku-generate: goku-clean
 # Migration
 # # # # # # # # #
 
-db-migrate: dbs-create db-migration-generate db-migration-remove-empty-files db-migration-run
+db-migrate: dbs-create db-migration-generate db-migration-run
 
 # # # # # # # # #
 # Database
@@ -113,32 +113,30 @@ CMD_CREATE_MIGRATION_FOLDER_FUTURE=mkdir -p $(APP_ROOT_DIR)/db/migration/future/
 CMD_CREATE_MIGRATION_FOLDER_PRESENT=mkdir -p $(APP_ROOT_DIR)/db/migration/present/{}
 CMD_CREATE_MIGRATION_FOLDER_PAST=mkdir -p $(APP_ROOT_DIR)/db/migration/past/{}
 CMD_GENERATE_DB_MIGRATION=yamltodb -H ${DATABASE_HOST} -p 5432 -U ${POSTGRES_USERNAME} -r $(APP_ROOT_DIR)/db/schema/{} -c $(APP_ROOT_DIR)/db/pyrseas-yamltodb.config.yaml -m -o $(APP_ROOT_DIR)/db/migration/future/{}/db.{}.migration.sql {}
+CMD_TO_DELETE_EMPTY_FILES_IN_FUTURE_DIR=find $(APP_ROOT_DIR)/db/migration/future/{} -size  0 -print -delete
 db-migration-generate: dbs-create
 	@echo "$(YELLOW)Generating DB Migrations...$(RESET)"
-	$(CMD_RM_MIGRATION) && \
-	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_CREATE_MIGRATION_FOLDER_FUTURE) && \
-	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_CREATE_MIGRATION_FOLDER_PRESENT) && \
-	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_CREATE_MIGRATION_FOLDER_PAST) && \
-	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_GENERATE_DB_MIGRATION)
+	$(CMD_RM_MIGRATION)
+	@xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_CREATE_MIGRATION_FOLDER_FUTURE)
+	@xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_CREATE_MIGRATION_FOLDER_PRESENT)
+	@xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_CREATE_MIGRATION_FOLDER_PAST)
+	@xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_GENERATE_DB_MIGRATION)
+	@echo "$(YELLOW)Removing any empty migration files...$(RESET)"
+	@xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_TO_DELETE_EMPTY_FILES_IN_FUTURE_DIR)
 
 # - Database: Run the migrations: Move the migration.sql file to 'present', run it, move it to 'past'
-CMD_MOVE_MIGRATIONS_TO_PRESENT=mv $(APP_ROOT_DIR)/db/migration/future/{}/db.{}.migration.sql $(APP_ROOT_DIR)/db/migration/present/{}/db.{}.migration.sql
-CMD_MOVE_MIGRATIONS_TO_PAST=mv $(APP_ROOT_DIR)/db/migration/present/{}/db.{}.migration.sql $(APP_ROOT_DIR)/db/migration/past/{}/db.{}.$$(date +%Y_%m_%d_%H%M%S).migration.sql
-CMD_RUN_MIGRATIONS=psql -h ${DATABASE_HOST} -p 5432 --username=${POSTGRES_USERNAME} --dbname={} --single-transaction --file=$(APP_ROOT_DIR)/db/migration/present/{}/db.{}.migration.sql
+CMD_MOVE_MIGRATIONS_TO_PRESENT=find ${APP_NAME}/db/migration/future/[] -type f -name '*.migration.sql' -exec mv {} ${APP_NAME}/db/migration/present/[]/. \;
+CMD_RUN_MIGRATIONS=find ${APP_NAME}/db/migration/future/[] -type f -name '*.migration.sql' -exec psql -h ${DATABASE_HOST} -p 5432 --username=${POSTGRES_USERNAME} --dbname=[] --single-transaction --file={} \;
+CMD_MOVE_MIGRATIONS_TO_PAST=find ${APP_NAME}/db/migration/present/[] -type f -name '*.migration.sql' -exec mv {} ${APP_NAME}/db/migration/past/[]/db.[].$$(date +%Y_%m_%d_%H%M%S).migration.sql \;
 db-migration-run:
 	@echo "$(YELLOW)Running DB Migrations...$(RESET)"
-	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_MOVE_MIGRATIONS_TO_PRESENT) && \
-	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_RUN_MIGRATIONS) && \
-	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_MOVE_MIGRATIONS_TO_PAST)
-
-CMD_TO_DELETE_EMPTY_FILES_IN_DIR=find $(APP_ROOT_DIR)/db/migration/past/{} -size  0 -print -delete
-db-migration-remove-empty-files:
-	@echo "$(YELLOW)Removing any empty migration files...$(RESET)"
-	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I{} $(CMD_TO_DELETE_EMPTY_FILES_IN_DIR)
+	@xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I[] $(CMD_MOVE_MIGRATIONS_TO_PRESENT) && \
+	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I[] $(CMD_RUN_MIGRATIONS) && \
+	xargs -a $(APP_ROOT_DIR)/db/schema/databases.generated.txt -t -I[] $(CMD_MOVE_MIGRATIONS_TO_PAST)
 
 db-migration-clean:
 	@echo "$(YELLOW)Removing all migration generated files...$(RESET)"
-	rm -rf $(APP_ROOT_DIR)/db/schema/* && \
+	rm -rf $(APP_ROOT_DIR)/db/schema/*
 	rm -rf $(APP_ROOT_DIR)/db/migration/future/*
 
 

@@ -40,7 +40,6 @@ services:
         container_name: goku_${APP_NAME:?err}_backend
         image: iamteejay/goku:golang_latest
         depends_on:
-            - builder
             - database
         ports:
             - 8080:8080 # Rest API
@@ -69,7 +68,6 @@ services:
             context: frontend
             dockerfile: Dockerfile.frontend
         depends_on:
-            - builder
             - database
             - backend
         ports:
